@@ -7,16 +7,18 @@
 #include <AccelStepper.h>
 
 #include <Wire.h>
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "debug.h"
+
+
 
 Adafruit_SSD1306 display(OLED_RESET);
 
 //AccelStepper stepper; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
 AccelStepper stepper(1,9,8); // 1 = type, 9 = step, 8 = direction
 const int ACCEL_STEPPER_MAX_SPEED = 1024;
-
-const int DEBUG = 1; // Debug on=1, off=0
 
 const int SPEED_SENSOR_PIN = 0;
 int speedSensorValue = 0;
@@ -27,13 +29,15 @@ const int SWITCH_2_PIN = 7;
 const float DIRECTION_TOWARDS_SWITCH_2 = -1;
 const float DIRECTION_TOWARDS_SWITCH_1 = 1;
 float _direction = DIRECTION_TOWARDS_SWITCH_2;
+ 
+
 
 void setup()
 {  
+ 
+  initDebug(1);
 
-  if (DEBUG != 0) {
-    Serial.begin(9600);
-  }
+  intializeSlider();
 
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC);
@@ -49,24 +53,29 @@ void setup()
 
   stepper.setSpeed(speedSensorValue);
 
+
 }
 
-void debug(String text, int value) {
-  if (DEBUG == 0) {
-    return;
+void intializeSlider() {
+  stepper.setMaxSpeed(-1 * ACCEL_STEPPER_MAX_SPEED * 4);
+  debugStr("To End...");
+  // changeSpeedTo(ACCEL_STEPPER_MAX_SPEED);
+  while ( ! endReached()) {
+    stepper.runSpeed();
   }
-  Serial.print(text);
-  Serial.print(value);
-  Serial.print("\n");
-}
-
-void debug(String text, float value) {
-  if (DEBUG == 0) {
-    return;
+  debugStr("End reached.");
+  stepper.setCurrentPosition(0);
+  changeSpeedTo(0);
+  changeDirection();
+  // changeSpeedTo(ACCEL_STEPPER_MAX_SPEED);
+  
+  debugStr("To Begin..."); 
+  while ( ! endReached()) {
+    stepper.runSpeed();
   }
-  Serial.print(text);
-  Serial.print(value);
-  Serial.print("\n");
+  long pos = stepper.currentPosition();
+  debugStr(String(pos));
+  delay(5000);
 }
 
 
@@ -75,30 +84,33 @@ int readSpeedSensorValue() {
   return map(speed,0,1023,0,100); // percent will range from -100 to 100.
 }
 
-void showOnDisplay(String text, int value) {
+void showOnDisplay(String text) {
   display.setCursor(0,0);
   display.clearDisplay(); 
-  display.println(text+value+"%");
+  display.println(text);
   display.display();
 }
+
+// void showOnDisplay(String text, int value) {
+//   showOnDisplay(text+value+"%");
+// }
 
 void changeSpeedTo(int speedPercentage) {
   if (speedPercentage != speedSensorValue) { 
     float maximalSpeed = ACCEL_STEPPER_MAX_SPEED;
     float percentage = (float)speedPercentage / 100;
-    //debug("percentage = ", percentage);
+    debugFloat("percentage = ", percentage);
     float newSpeed = maximalSpeed * percentage * _direction; 
-    debug("newSpeed = ", newSpeed);
     stepper.setSpeed(newSpeed);
-
-    showOnDisplay("Speed = ", speedPercentage);
+    // String speedToDisplay = "Speed = "+speedPercentage + "%";
+    // showOnDisplay(speedToDisplay);
     speedSensorValue = speedPercentage;
   }
 }
 
 float changeDirection() {
   _direction = _direction * -1;
-  debug("direction changed:", _direction);
+  debugFloat("direction changed:", _direction);
   return _direction;
 }
 
@@ -119,6 +131,7 @@ boolean endReached() {
 
 void loop()
 {  
+  
   int speed = readSpeedSensorValue();
  
   
