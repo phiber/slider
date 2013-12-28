@@ -57,9 +57,11 @@ void setup()
 }
 
 void intializeSlider() {
-  stepper.setMaxSpeed(-1 * ACCEL_STEPPER_MAX_SPEED * 4);
+  int speed = ACCEL_STEPPER_MAX_SPEED;
+
+  stepper.setMaxSpeed(speed);
   debugStr("To End...");
-  // changeSpeedTo(ACCEL_STEPPER_MAX_SPEED);
+  changeSpeedTo(speed);
   while ( ! endReached()) {
     stepper.runSpeed();
   }
@@ -67,12 +69,15 @@ void intializeSlider() {
   stepper.setCurrentPosition(0);
   changeSpeedTo(0);
   changeDirection();
-  // changeSpeedTo(ACCEL_STEPPER_MAX_SPEED);
+  changeSpeedTo(speed);
   
   debugStr("To Begin..."); 
   while ( ! endReached()) {
     stepper.runSpeed();
   }
+  debugStr("Begin reached.");
+  changeSpeedTo(0);
+  changeDirection();
   long pos = stepper.currentPosition();
   debugStr(String(pos));
   delay(5000);
@@ -91,9 +96,9 @@ void showOnDisplay(String text) {
   display.display();
 }
 
-// void showOnDisplay(String text, int value) {
-//   showOnDisplay(text+value+"%");
-// }
+void showOnDisplay(String text, int value) {
+  showOnDisplay(text+value+"%");
+}
 
 void changeSpeedTo(int speedPercentage) {
   if (speedPercentage != speedSensorValue) { 
@@ -102,8 +107,7 @@ void changeSpeedTo(int speedPercentage) {
     debugFloat("percentage = ", percentage);
     float newSpeed = maximalSpeed * percentage * _direction; 
     stepper.setSpeed(newSpeed);
-    // String speedToDisplay = "Speed = "+speedPercentage + "%";
-    // showOnDisplay(speedToDisplay);
+    showOnDisplay("speed = ", speedPercentage);
     speedSensorValue = speedPercentage;
   }
 }
