@@ -29,6 +29,9 @@ const int SWITCH_2_PIN = 7;
 const float DIRECTION_TOWARDS_SWITCH_2 = -1;
 const float DIRECTION_TOWARDS_SWITCH_1 = 1;
 float _direction = DIRECTION_TOWARDS_SWITCH_2;
+
+const int CANCEL_BUTTON_PIN = 4;
+const int OK_BUTTON_PIN = 5;
  
 
 
@@ -37,12 +40,13 @@ void setup()
  
   initDebug(1);
 
-  intializeSlider();
+  
+  //intializeSlider();
 
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC);
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
+  display.setTextSize(0.5);
+  display.setTextColor(WHITE); 
   display.setCursor(0,0);
 
   stepper.setMaxSpeed(ACCEL_STEPPER_MAX_SPEED);
@@ -51,10 +55,55 @@ void setup()
   pinMode(SWITCH_1_PIN, INPUT);
   pinMode(SWITCH_2_PIN, INPUT);
 
-  stepper.setSpeed(speedSensorValue);
 
+  // OK, CANCEL Buttons
+  pinMode(CANCEL_BUTTON_PIN, INPUT);
+  pinMode(OK_BUTTON_PIN, INPUT);
+
+  stepper.setSpeed(speedSensorValue);
+  showMainMenu();
 
 }
+
+
+void showMainMenu() {
+
+  int sensorValue = readSpeedSensorValue();
+  int selection = 1;
+  const int MIN_SELECTION = 1;
+  const int MAX_SELECTION = 2;
+  while ( 1 ) {
+
+    int newSensorValue = readSpeedSensorValue();
+    if (sensorValue != newSensorValue) {
+      if (newSensorValue > sensorValue && selection < MAX_SELECTION) {
+        selection += 1;
+        debugInt("Selection changed: ", selection);
+      } else if (selection > MIN_SELECTION) {
+        selection -= 1;
+        debugInt("Selection changed: ", selection);
+      }
+      sensorValue = newSensorValue;
+    }
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    for (int i = 1; i <= MAX_SELECTION; i++) {
+      if (selection == i) {
+        display.setTextColor(BLACK, WHITE);    
+      } else {
+        display.setTextColor(WHITE);
+      }
+      display.println(i);
+      display.display();
+    }
+
+    delay(500);
+  
+  }
+  
+}
+
 
 void intializeSlider() {
   int speed = ACCEL_STEPPER_MAX_SPEED;
@@ -84,9 +133,11 @@ void intializeSlider() {
 }
 
 
+
+
 int readSpeedSensorValue() {
   int speed = analogRead(SPEED_SENSOR_PIN);
-  return map(speed,0,1023,0,100); // percent will range from -100 to 100.
+  return map(speed,0,ACCEL_STEPPER_MAX_SPEED,0,100); // percent will range from -100 to 100.
 }
 
 void showOnDisplay(String text) {
@@ -148,7 +199,3 @@ void loop()
   changeSpeedTo(speed);
   stepper.runSpeed();
 }
-
-
-
-
