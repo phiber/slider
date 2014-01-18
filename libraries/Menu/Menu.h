@@ -17,9 +17,13 @@ class Menu
 {
   public:
     Menu(menu_item *mainMenu);
-    menu_item* currentMenuItem(); 
+    menu_item* currentMenu(); 
+    menu_item* currentMenuItem();
+    void select();
     private:
-    menu_item *menu;
+    menu_item* current_menu;
+    int current_menu_item_index;
+
 };
 
 #endif
