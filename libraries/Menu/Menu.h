@@ -2,6 +2,7 @@
 #define Menu_h
 
 #include "Arduino.h"
+#include "StackArray.h"
 
 #define MENU_NAME_LEN 13
 
@@ -20,10 +21,13 @@ class Menu
     menu_item* currentMenu(); 
     menu_item* currentMenuItem();
     void select();
+    void up();
+    void down();
+    void back();
     private:
     menu_item* current_menu;
     int current_menu_item_index;
-
+    StackArray <menu_item*> previous_menus;
 };
 
 #endif
