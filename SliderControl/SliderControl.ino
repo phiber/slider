@@ -11,13 +11,36 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "debug.h"
+#include <Menu.h>
+#include <StackArray.h>
+
+
+bool functionCalled;
+
+void some_function() {
+  functionCalled = true;
+}
+
+menu_item menu_trigger[] = {
+  { "DoTrigger", 'F',  (void*)some_function}
+};
+
+menu_item menu_main[] =
+{
+    // { "This        ", 'M', (void*)menu_trigger },
+    // { "is          ", 'M', (void*)menu_trigger },
+    { "the         ", 'M', (void*)menu_trigger },
+    { "the         ", 'M', (void*)menu_trigger },
+    { "Menu        ", 'F',(void*)some_function },
+    {"Termination ", 'T', (void*)some_function }
+};
 
 
 
 Adafruit_SSD1306 display(OLED_RESET);
 
 //AccelStepper stepper; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-AccelStepper stepper(1,9,8); // 1 = type, 9 = step, 8 = direction
+//AccelStepper stepper(1,9,8); // 1 = type, 9 = step, 8 = direction
 const int ACCEL_STEPPER_MAX_SPEED = 1024;
 
 const int SPEED_SENSOR_PIN = 0;
@@ -32,14 +55,19 @@ float _direction = DIRECTION_TOWARDS_SWITCH_2;
 
 const int CANCEL_BUTTON_PIN = 4;
 const int OK_BUTTON_PIN = 5;
+const int UP_BUTTON_PIN = 10;
+const int DOWN_BUTTON_PIN = 6;
  
-
+Menu menu  = Menu::Menu((menu_item*)menu_main);
 
 void setup()
 {  
- 
-  initDebug(1);
+  
 
+
+  initDebug(1);
+  menu  = Menu::Menu((menu_item*)menu_main);
+  debugInt("menu manin items size = ", sizeof menu_main);
   
   //intializeSlider();
 
@@ -49,7 +77,7 @@ void setup()
   display.setTextColor(WHITE); 
   display.setCursor(0,0);
 
-  stepper.setMaxSpeed(ACCEL_STEPPER_MAX_SPEED);
+  //stepper.setMaxSpeed(ACCEL_STEPPER_MAX_SPEED);
 
   //Initialize switch1 as Input
   pinMode(SWITCH_1_PIN, INPUT);
@@ -59,86 +87,20 @@ void setup()
   // OK, CANCEL Buttons
   pinMode(CANCEL_BUTTON_PIN, INPUT);
   pinMode(OK_BUTTON_PIN, INPUT);
-
-  stepper.setSpeed(speedSensorValue);
-  showMainMenu();
-
-}
-
-
-void showMainMenu() {
-
-  int sensorValue = readSpeedSensorValue();
-  int selection = 1;
-  const int MIN_SELECTION = 1;
-  const int MAX_SELECTION = 2;
-  while ( 1 ) {
-
-    int newSensorValue = readSpeedSensorValue();
-    if (sensorValue != newSensorValue) {
-      if (newSensorValue > sensorValue && selection < MAX_SELECTION) {
-        selection += 1;
-        debugInt("Selection changed: ", selection);
-      } else if (selection > MIN_SELECTION) {
-        selection -= 1;
-        debugInt("Selection changed: ", selection);
-      }
-      sensorValue = newSensorValue;
-    }
-
-    display.clearDisplay();
-    display.setCursor(0,0);
-    for (int i = 1; i <= MAX_SELECTION; i++) {
-      if (selection == i) {
-        display.setTextColor(BLACK, WHITE);    
-      } else {
-        display.setTextColor(WHITE);
-      }
-      display.println(i);
-      display.display();
-    }
-
-    delay(500);
+  pinMode(DOWN_BUTTON_PIN, INPUT);
+  pinMode(UP_BUTTON_PIN, INPUT);
   
-  }
   
+  //stepper.setSpeed(speedSensorValue);
 }
 
 
-void intializeSlider() {
-  int speed = ACCEL_STEPPER_MAX_SPEED;
-
-  stepper.setMaxSpeed(speed);
-  debugStr("To End...");
-  changeSpeedTo(speed);
-  while ( ! endReached()) {
-    stepper.runSpeed();
-  }
-  debugStr("End reached.");
-  stepper.setCurrentPosition(0);
-  changeSpeedTo(0);
-  changeDirection();
-  changeSpeedTo(speed);
-  
-  debugStr("To Begin..."); 
-  while ( ! endReached()) {
-    stepper.runSpeed();
-  }
-  debugStr("Begin reached.");
-  changeSpeedTo(0);
-  changeDirection();
-  long pos = stepper.currentPosition();
-  debugStr(String(pos));
-  delay(5000);
+void showMenu() {
+  showOnDisplay(menu.currentMenuItem()->name);
 }
 
 
 
-
-int readSpeedSensorValue() {
-  int speed = analogRead(SPEED_SENSOR_PIN);
-  return map(speed,0,ACCEL_STEPPER_MAX_SPEED,0,100); // percent will range from -100 to 100.
-}
 
 void showOnDisplay(String text) {
   display.setCursor(0,0);
@@ -151,51 +113,49 @@ void showOnDisplay(String text, int value) {
   showOnDisplay(text+value+"%");
 }
 
-void changeSpeedTo(int speedPercentage) {
-  if (speedPercentage != speedSensorValue) { 
-    float maximalSpeed = ACCEL_STEPPER_MAX_SPEED;
-    float percentage = (float)speedPercentage / 100;
-    debugFloat("percentage = ", percentage);
-    float newSpeed = maximalSpeed * percentage * _direction; 
-    stepper.setSpeed(newSpeed);
-    showOnDisplay("speed = ", speedPercentage);
-    speedSensorValue = speedPercentage;
-  }
-}
-
-float changeDirection() {
-  _direction = _direction * -1;
-  debugFloat("direction changed:", _direction);
-  return _direction;
-}
-
-float getDirection() {
-  return _direction;
-}
-
-
-boolean endReached() {
-  int switch1 = digitalRead(SWITCH_1_PIN);
-  int switch2 = digitalRead(SWITCH_2_PIN);
-  return (
-    (getDirection() == DIRECTION_TOWARDS_SWITCH_2 && switch2 == HIGH)
-      ||
-    (getDirection() == DIRECTION_TOWARDS_SWITCH_1 && switch1 == HIGH)
-    );
-}
+int downButtonState = LOW;
+int upButtonState = LOW;
 
 void loop()
 {  
+
+  showMenu();
+  // debugStr(menu.currentMenuItem()->name);
+  int okButton = digitalRead(OK_BUTTON_PIN);
+  int cacnelButton  = digitalRead(CANCEL_BUTTON_PIN);
+  int upButton = digitalRead(UP_BUTTON_PIN);
+  int downButton = digitalRead(DOWN_BUTTON_PIN);
+
+  if (upButton != upButtonState) {
+    upButtonState = upButton;
+    if (upButtonState == HIGH) {
+      menu.up(); 
+    }
+  }
+
+  if (downButton != downButtonState) {
+    downButtonState = downButton;
+    if (downButtonState == HIGH) {
+      menu.down(); 
+    }
+  }
+    
   
-  int speed = readSpeedSensorValue();
- 
-  
-  //debug("Switch1 = ", switch1);
-  if (endReached()) {
-      changeSpeedTo(0);
-      speed = speed * changeDirection();
-  } 
- 
-  changeSpeedTo(speed);
-  stepper.runSpeed();
+  // debugInt("ok = ", okButton);
+  // debugInt("cancel = ", cacnelButton);
+  // debugInt("up= ", upButton);
+  // debugInt("down = ", downButton);
+
+
+  // if (okButton == HIGH) {
+  //    menu.select();
+  //  } else if (cacnelButton == HIGH) {
+  //    menu.back();
+  //  } else if (upButton == HIGH) {
+  //    menu.up();
+  //  } else if (downButton == HIGH) {
+    
+  //  }
+
+  //delay(2000);
 }
