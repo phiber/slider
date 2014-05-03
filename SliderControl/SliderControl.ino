@@ -22,17 +22,17 @@ void some_function() {
 }
 
 menu_item menu_trigger[] = {
-  { "DoTrigger", 'F',  (void*)some_function}
+  { "DoTrigger", 'F',  (void*)some_function},
+  { "Termination ", 'T', (void*)some_function }
 };
 
 menu_item menu_main[] =
 {
-    // { "This        ", 'M', (void*)menu_trigger },
-    // { "is          ", 'M', (void*)menu_trigger },
-    { "the         ", 'M', (void*)menu_trigger },
+    { "This        ", 'M', (void*)menu_trigger },
+    { "is          ", 'M', (void*)menu_trigger },
     { "the         ", 'M', (void*)menu_trigger },
     { "Menu        ", 'F',(void*)some_function },
-    {"Termination ", 'T', (void*)some_function }
+    { "Termination ", 'T', (void*)some_function }
 };
 
 
@@ -99,9 +99,6 @@ void showMenu() {
   showOnDisplay(menu.currentMenuItem()->name);
 }
 
-
-
-
 void showOnDisplay(String text) {
   display.setCursor(0,0);
   display.clearDisplay(); 
@@ -115,20 +112,22 @@ void showOnDisplay(String text, int value) {
 
 int downButtonState = LOW;
 int upButtonState = LOW;
+int okButtonState = LOW;
+int cancelButtonState = LOW;
 
 void loop()
 {  
 
   showMenu();
-  // debugStr(menu.currentMenuItem()->name);
   int okButton = digitalRead(OK_BUTTON_PIN);
-  int cacnelButton  = digitalRead(CANCEL_BUTTON_PIN);
+  int cancelButton  = digitalRead(CANCEL_BUTTON_PIN);
   int upButton = digitalRead(UP_BUTTON_PIN);
   int downButton = digitalRead(DOWN_BUTTON_PIN);
 
   if (upButton != upButtonState) {
     upButtonState = upButton;
     if (upButtonState == HIGH) {
+      debugStr("up();");
       menu.up(); 
     }
   }
@@ -136,26 +135,25 @@ void loop()
   if (downButton != downButtonState) {
     downButtonState = downButton;
     if (downButtonState == HIGH) {
-      menu.down(); 
+        debugStr("down();");
+        menu.down(); 
     }
   }
-    
+
+  if (okButton != okButtonState) {
+      okButtonState = okButton;
+      if (okButtonState == HIGH) {
+        debugStr("select();");
+        menu.select();
+      }
+  }
+
+  if (cancelButton != cancelButtonState) {
+      cancelButtonState = cancelButton;
+      if (cancelButtonState == HIGH) {
+        debugStr("back();");
+        menu.back();
+      }
+  }    
   
-  // debugInt("ok = ", okButton);
-  // debugInt("cancel = ", cacnelButton);
-  // debugInt("up= ", upButton);
-  // debugInt("down = ", downButton);
-
-
-  // if (okButton == HIGH) {
-  //    menu.select();
-  //  } else if (cacnelButton == HIGH) {
-  //    menu.back();
-  //  } else if (upButton == HIGH) {
-  //    menu.up();
-  //  } else if (downButton == HIGH) {
-    
-  //  }
-
-  //delay(2000);
 }

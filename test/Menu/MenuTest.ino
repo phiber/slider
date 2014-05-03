@@ -6,8 +6,8 @@ TestSuite suite;
 
 bool functionCalled;
 
-
-
+ 
+ 
 void some_function() {
 
 	functionCalled = true;

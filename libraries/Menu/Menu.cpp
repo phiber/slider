@@ -5,20 +5,8 @@
  
 
 Menu::Menu(menu_item *mainMenu) {
-  
-Serial.print("Menu constructor");
-
   current_menu = mainMenu;
   current_menu_item_index = 0;
-
-  Serial.print("MC sizeof current_menu: ");
-	Serial.print(sizeof current_menu);
-	Serial.print("\n");
-	Serial.print(sizeof current_menu / sizeof *current_menu);
-	Serial.print("\n");
-	Serial.print(sizeof *current_menu);
-	Serial.print("\n");
-
 }
 
 menu_item *Menu::currentMenu() {
@@ -30,10 +18,10 @@ menu_item* Menu::currentMenuItem(){
 }
 
 void Menu::select() {
-	Serial.print("Select Called");
 	menu_item *selected = currentMenuItem();
 	if (selected->type == 'M') {
 		previous_menus.push(current_menu);
+		current_menu_item_index = 0;
 		current_menu = (menu_item*) selected->function;
 	} else if (selected->type == 'F'){
 		((void (*)(void)) selected->function)();
@@ -49,19 +37,15 @@ void Menu::up() {
 }
 
 void Menu::down() {
-	Serial.print("sizeof current_menu: ");
-	Serial.print(sizeof(&current_menu));
-	Serial.print("\n");
-	
-
-	int newIndex = current_menu_item_index++;
-	menu_item *nextItem = &current_menu[current_menu_item_index++];
+	int newIndex = current_menu_item_index+1;
+	menu_item *nextItem = &current_menu[newIndex];
 	if (nextItem->type != 'T') {
 		current_menu_item_index++;		
 	}
-	
 } 
 
 void Menu::back() {
-	current_menu = previous_menus.pop();
+	menu_item *previousItem = previous_menus.pop();
+	// Serial.print("previousItem = "+previousItem);
+	current_menu = previousItem;
 }
