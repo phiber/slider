@@ -21,19 +21,28 @@ void some_function() {
   functionCalled = true;
 }
 
+
+
 menu_item menu_trigger[] = {
-  { "DoTrigger", 'F',  (void*)some_function},
-  { "Termination ", 'T', (void*)some_function }
+  { "DoTrigger", 'F',  (void*)some_function}
+};
+
+sub_menu sub_menu_trigger = {
+  menu_trigger, 0, 0
 };
 
 menu_item menu_main[] =
 {
-    { "This        ", 'M', (void*)menu_trigger },
-    { "is          ", 'M', (void*)menu_trigger },
-    { "the         ", 'M', (void*)menu_trigger },
-    { "Menu        ", 'F',(void*)some_function },
-    { "Termination ", 'T', (void*)some_function }
+    { "This        ", 'M', &sub_menu_trigger },
+    { "is          ", 'M', &sub_menu_trigger },
+    { "the         ", 'M', &sub_menu_trigger },
+    { "Menu        ", 'F',(void*)some_function }
 };
+
+sub_menu sub_menu_main = {
+  menu_main, 0, 3
+};
+
 
 
 
@@ -58,16 +67,13 @@ const int OK_BUTTON_PIN = 5;
 const int UP_BUTTON_PIN = 10;
 const int DOWN_BUTTON_PIN = 6;
  
-Menu menu  = Menu::Menu((menu_item*)menu_main);
+Menu menu  = Menu::Menu(&sub_menu_main);
 
 void setup()
 {  
   
-
-
   initDebug(1);
-  menu  = Menu::Menu((menu_item*)menu_main);
-  debugInt("menu manin items size = ", sizeof menu_main);
+ menu  = Menu::Menu(&sub_menu_main);
   
   //intializeSlider();
 

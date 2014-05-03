@@ -4,25 +4,24 @@
 #include <StackArray.h>
  
 
-Menu::Menu(menu_item *mainMenu) {
-  current_menu = mainMenu;
-  current_menu_item_index = 0;
+Menu::Menu(sub_menu *mainMenu) {
+  current_sub_menu = mainMenu;
 }
 
-menu_item *Menu::currentMenu() {
-	return current_menu;
+sub_menu *Menu::currentMenu() {
+	return current_sub_menu;
 }
 
 menu_item* Menu::currentMenuItem(){
-	return &current_menu[current_menu_item_index];
+	int index = current_sub_menu->currentIndex;
+	return &current_sub_menu->menuItems[index];
 }
 
 void Menu::select() {
 	menu_item *selected = currentMenuItem();
 	if (selected->type == 'M') {
-		previous_menus.push(current_menu);
-		current_menu_item_index = 0;
-		current_menu = (menu_item*) selected->function;
+		previous_menus.push(current_sub_menu);
+		current_sub_menu = (sub_menu*) selected->function;
 	} else if (selected->type == 'F'){
 		((void (*)(void)) selected->function)();
 	} else {
@@ -31,21 +30,20 @@ void Menu::select() {
 }
 
 void Menu::up() {
-	if(current_menu_item_index>0){
-		current_menu_item_index--;
+	if(current_sub_menu->currentIndex > 0){
+		current_sub_menu->currentIndex--;
 	}
 }
 
 void Menu::down() {
-	int newIndex = current_menu_item_index+1;
-	menu_item *nextItem = &current_menu[newIndex];
-	if (nextItem->type != 'T') {
-		current_menu_item_index++;		
+	if (current_sub_menu->currentIndex < current_sub_menu->maxIndex) {
+		current_sub_menu->currentIndex++;		
 	}
 } 
 
 void Menu::back() {
-	menu_item *previousItem = previous_menus.pop();
-	// Serial.print("previousItem = "+previousItem);
-	current_menu = previousItem;
+	if (!previous_menus.isEmpty()) {
+		sub_menu *previousItem = previous_menus.pop();
+		current_sub_menu = previousItem;	
+	}
 }

@@ -13,21 +13,26 @@ struct menu_item  // 20 bytes total
     void *function;            // 2 bytes
 };
 
+struct sub_menu 
+{
+    menu_item *menuItems;
+    int currentIndex;
+    int maxIndex;
+};
 
 class Menu
 {
   public:
-    Menu(menu_item *mainMenu);
-    menu_item* currentMenu(); 
+    Menu(sub_menu *mainMenu);
+    sub_menu* currentMenu(); 
     menu_item* currentMenuItem();
     void select();
     void up();
     void down();
     void back();
     private:
-    menu_item* current_menu;
-    int current_menu_item_index;
-    StackArray <menu_item*> previous_menus;
+    sub_menu* current_sub_menu;
+    StackArray <sub_menu*> previous_menus;
 };
 
 #endif
