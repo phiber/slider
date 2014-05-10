@@ -4,6 +4,7 @@
 // 
 #define OLED_RESET 12  //Pin # the OLED module's RST pin is connected to.
 
+#include <ArduinoUnit.h>
 #include <AccelStepper.h>
 
 #include <Wire.h>
@@ -24,25 +25,24 @@ void some_function() {
 
 
 menu_item menu_trigger[] = {
-  { "DoTrigger", 'F',  (void*)some_function}
+  { "SubTrigger", 'F',  (void*)some_function},
+  { "SubTrigger2", 'F',  (void*)some_function}
 };
 
 sub_menu sub_menu_trigger = {
-  menu_trigger, 0, 0
+  menu_trigger, 0, 1
 };
+
 
 menu_item menu_main[] =
 {
-    { "This        ", 'M', &sub_menu_trigger },
-    { "is          ", 'M', &sub_menu_trigger },
-    { "the         ", 'M', &sub_menu_trigger },
-    { "Menu        ", 'F',(void*)some_function }
+    { "Trigger     ", 'M', &sub_menu_trigger },
+    { "Some funtion", 'F',(void*)some_function }
 };
 
 sub_menu sub_menu_main = {
-  menu_main, 0, 3
+  menu_main, 0, 1
 };
-
 
 
 
@@ -157,8 +157,14 @@ void loop()
   if (cancelButton != cancelButtonState) {
       cancelButtonState = cancelButton;
       if (cancelButtonState == HIGH) {
-        debugStr("back();");
+       
+        debugStr(menu.currentMenuItem()->name);
+        debugInt("currentIndex ", menu.currentMenu()->currentIndex);
         menu.back();
+        debugStr("back();");
+        // menu_item currentMenuItem = 
+        debugStr(menu.currentMenuItem()->name);
+        debugInt("currentIndex ", menu.currentMenu()->currentIndex);
       }
   }    
   

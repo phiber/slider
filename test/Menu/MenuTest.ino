@@ -23,8 +23,8 @@ sub_menu sub_menu_trigger = {
 
 menu_item menu_main[] =
 {
-    { "Trigger     ", 'M', &sub_menu_trigger },
-    { "Some funtion", 'F',(void*)some_function }
+    { "Trigger", 'M', &sub_menu_trigger },
+    { "Somefunction", 'F',(void*)some_function }
 };
 
 sub_menu sub_menu_main = {
@@ -99,13 +99,20 @@ test(navigateBackToPreviousMenu) {
     sub_menu *expected = &sub_menu_main;
 	
 	menu.select();
-	assertTrue(menu.currentMenu() == &sub_menu_trigger);
+	
+// assertTrue(menu.currentMenu() == &sub_menu_trigger);
+	menu.up();
+	menu.down();
 	menu.back();
 	sub_menu *current = menu.currentMenu();
 	
-	assertTrue(current == expected);
+	int index = current->currentIndex;
+	menu_item *currentMenuItem = &current->menuItems[index];
+	Serial.print(currentMenuItem->name);
+	Serial.print(current->currentIndex);
+	assertTrue(&current == &expected);
+	assertTrue(current->currentIndex == expected->currentIndex);
 }
-
 
 void loop() {
   suite.run();

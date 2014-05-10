@@ -22,6 +22,13 @@ void Menu::select() {
 	if (selected->type == 'M') {
 		previous_menus.push(current_sub_menu);
 		current_sub_menu = (sub_menu*) selected->function;
+		int index = current_sub_menu->currentIndex;
+		menu_item *currentMenuItem = &current_sub_menu->menuItems[index];
+		Serial.print("Current Menu: ");
+		Serial.print(currentMenuItem->name);
+		Serial.print("Current Index: ");
+		Serial.print(current_sub_menu->currentIndex);
+
 	} else if (selected->type == 'F'){
 		((void (*)(void)) selected->function)();
 	} else {
@@ -44,6 +51,12 @@ void Menu::down() {
 void Menu::back() {
 	if (!previous_menus.isEmpty()) {
 		sub_menu *previousItem = previous_menus.pop();
-		current_sub_menu = previousItem;	
+		current_sub_menu = previousItem;
+		int index = current_sub_menu->currentIndex;
+		menu_item *currentMenuItem = &current_sub_menu->menuItems[index];
+		Serial.print("Current Menu: ");
+		Serial.print(currentMenuItem->name);
+		Serial.print("Current Index: ");
+		Serial.print(current_sub_menu->currentIndex);	
 	}
 }
