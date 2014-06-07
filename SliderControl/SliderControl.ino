@@ -57,7 +57,7 @@ int speedSensorValue = 0;
 
 const int SWITCH_1_PIN = 2;
 const int SWITCH_2_PIN = 7;
-
+ 
 const float DIRECTION_TOWARDS_SWITCH_2 = -1;
 const float DIRECTION_TOWARDS_SWITCH_1 = 1;
 float _direction = DIRECTION_TOWARDS_SWITCH_2;
@@ -70,7 +70,7 @@ const int DOWN_BUTTON_PIN = 6;
 Menu menu  = Menu::Menu(&sub_menu_main);
 
 void setup()
-{  
+{    
   
   initDebug(1);
  menu  = Menu::Menu(&sub_menu_main);

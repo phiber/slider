@@ -110,7 +110,7 @@ test(navigateBackToPreviousMenu) {
 	menu_item *currentMenuItem = &current->menuItems[index];
 	Serial.print(currentMenuItem->name);
 	Serial.print(current->currentIndex);
-	assertTrue(&current == &expected);
+	assertTrue(current == expected);
 	assertTrue(current->currentIndex == expected->currentIndex);
 }
 
