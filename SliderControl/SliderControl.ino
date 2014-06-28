@@ -13,7 +13,6 @@
 #include <Adafruit_SSD1306.h>
 #include "debug.h"
 #include <Menu.h>
-#include <StackArray.h>
 
 
 bool functionCalled;
@@ -30,8 +29,8 @@ void some_function_trigger() {
 
 
 MenuItem menu_main[] = {
-  MenuItem::MenuItem("Trigger     ", 'M', NULL),
-  MenuItem::MenuItem("Some funtion", 'F',(void*)some_function_main)
+  MenuItem::MenuItem("Trigger", 'M', NULL),
+  MenuItem::MenuItem("Some function", 'F',(void*)some_function_main)
 };
 
 MenuItem menu_trigger[] = {
@@ -166,7 +165,6 @@ void loop()
         debugInt("currentIndex ", menu.currentMenu()->currentIndex);
         menu.back();
         debugStr("back();");
-        // menu_item currentMenuItem = 
         debugStr(menu.currentMenuItem()->name);
         debugInt("currentIndex ", menu.currentMenu()->currentIndex);
       }

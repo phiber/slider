@@ -57,7 +57,6 @@ void Menu::back() {
 		MenuItem *selected = currentMenuItem();
 		Serial.print("Current Menu: ");
 		Serial.print(selected->name);
-//
 	}
 }
 
