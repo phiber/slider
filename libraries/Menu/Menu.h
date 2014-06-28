@@ -2,37 +2,43 @@
 #define Menu_h
 
 #include "Arduino.h"
-#include <StackArray.h>
+
 
 #define MENU_NAME_LEN 13
 
-struct menu_item  // 20 bytes total
+class MenuItem  // 20 bytes total
 {
-    char name[MENU_NAME_LEN];  // 13 bytes
+  public:
+    char *name;  // 13 bytes
     char type;                 // 1 byte
     void *function;            // 2 bytes
+    MenuItem(char* _name, char _type, void* _function);
+    MenuItem(){};
 };
 
-struct sub_menu 
+class SubMenu 
 {
-    menu_item *menuItems;
-    int currentIndex;
-    int maxIndex;
+    public:
+        MenuItem *menuItems;
+        int currentIndex;
+        int maxIndex;
+        SubMenu *parent_sub_menu;
+        SubMenu(MenuItem * _menuItems, int _currentIndex, int _maxIndex, SubMenu *_parent_sub_menu);
+
 };
 
 class Menu
 {
   public:
-    Menu(sub_menu *mainMenu);
-    sub_menu* currentMenu(); 
-    menu_item* currentMenuItem();
+    Menu(SubMenu *mainMenu);
+    SubMenu* currentMenu(); 
+    MenuItem* currentMenuItem();
     void select();
     void up();
     void down();
     void back();
-    private:
-    sub_menu* current_sub_menu;
-    StackArray <sub_menu*> previous_menus;
+  private:
+    SubMenu* current_sub_menu;
 };
 
 #endif

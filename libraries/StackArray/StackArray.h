@@ -137,6 +137,8 @@ StackArray<T>::~StackArray () {
 // resize the size of the stack.
 template<typename T>
 void StackArray<T>::resize (const int s) {
+    if (printer)
+      printer->println ("StackArray resize()");
   // defensive issue.
   if (s <= 0)
     exit ("STACK: error due to undesirable size for stack size.");
@@ -162,6 +164,8 @@ void StackArray<T>::push (const T i) {
 
   // store the item to the array.
   contents[top++] = i;
+  if (printer)
+    printer->println ("StackArray push(): element added " );
 }
 
 // pop an item from the stack.
@@ -179,6 +183,9 @@ T StackArray<T>::pop () {
     resize (size / 2);
 
   // return the top item from the array.
+  if (printer) {
+    printer->println ("StackArray Pop()");
+  }
   return item;
 }
 
@@ -190,6 +197,12 @@ T StackArray<T>::peek () const {
     exit ("STACK: can't peek item from stack: stack is empty.");
 
   // get the top item from the array.
+  if (printer) {
+    printer->println ("StackArray Peek():");
+    printer->println ((int)contents[top - 1]);
+    printer->println (count());
+
+  }
   return contents[top - 1];
 }
 

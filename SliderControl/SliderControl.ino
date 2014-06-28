@@ -18,31 +18,29 @@
 
 bool functionCalled;
 
-void some_function() {
+void some_function_main() {
   functionCalled = true;
+  Serial.println("Main: Some Function called!");
+}
+
+void some_function_trigger() {
+  functionCalled = true;
+  Serial.println("Trigger: Some Function called!");
 }
 
 
-
-menu_item menu_trigger[] = {
-  { "SubTrigger", 'F',  (void*)some_function},
-  { "SubTrigger2", 'F',  (void*)some_function}
+MenuItem menu_main[] = {
+  MenuItem::MenuItem("Trigger     ", 'M', NULL),
+  MenuItem::MenuItem("Some funtion", 'F',(void*)some_function_main)
 };
 
-sub_menu sub_menu_trigger = {
-  menu_trigger, 0, 1
+MenuItem menu_trigger[] = {
+  MenuItem::MenuItem("SubTrigger", 'F',  (void*)some_function_trigger),
+  MenuItem::MenuItem("SubTrigger2", 'F',  (void*)some_function_trigger)
 };
 
-
-menu_item menu_main[] =
-{
-    { "Trigger     ", 'M', &sub_menu_trigger },
-    { "Some funtion", 'F',(void*)some_function }
-};
-
-sub_menu sub_menu_main = {
-  menu_main, 0, 1
-};
+SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 1, NULL);
+SubMenu sub_menu_trigger = SubMenu::SubMenu(menu_trigger, 0, 1, &sub_menu_main);
 
 
 
@@ -71,7 +69,12 @@ Menu menu  = Menu::Menu(&sub_menu_main);
 
 void setup()
 {    
-  
+
+
+menu_main[0].function = &sub_menu_trigger;
+
+
+
   initDebug(1);
  menu  = Menu::Menu(&sub_menu_main);
   
@@ -96,7 +99,8 @@ void setup()
   pinMode(DOWN_BUTTON_PIN, INPUT);
   pinMode(UP_BUTTON_PIN, INPUT);
   
-  
+
+
   //stepper.setSpeed(speedSensorValue);
 }
 
