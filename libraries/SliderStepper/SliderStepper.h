@@ -216,13 +216,16 @@ void runTimedTimelapse() {
 		if (endReached()) {
 			lapsToGo--;
 			if (lapsToGo == 0) {
-				return;
+				break;
 			} else {
 				speed = numberOfSteps / totalRunSeconds * changeDirection() * timedLaps;
 				stepper.setSpeed(speed);
 				showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
 			}
 		}
+	}
+	while (!(isCancelButtonPressed() || isOkButtonPressed())) {
+		showOnDisplay("Timed: finished", getTimedDurationStr()+" "+getDirectionStr()+" "+String(timedLaps));	
 	}
 }
 
