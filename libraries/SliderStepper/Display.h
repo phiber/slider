@@ -41,5 +41,49 @@ void showOnDisplay(String text, int value) {
 	showOnDisplay(text+value+"%");
 }
 
+void showIntInput(String text, int number) {
+	display.clearDisplay(); 
+	display.setTextColor(WHITE, BLACK);
+	display.setCursor(0,0);
+	display.println(text);
+	display.setCursor(0,8);
+	display.setTextColor(BLACK, WHITE);
+	if (number < 10) display.print("0");
+	display.print(number);
+	display.setTextColor(WHITE);
+	display.display();	
+}
+
+void showTimeInput(String text, int hours, int minutes, int seconds, int invertedPosition) {
+	display.clearDisplay(); 
+	display.setTextColor(WHITE, BLACK);
+	display.setCursor(0,0);
+	display.println(text);
+	display.setCursor(0,8);
+	if (invertedPosition == 0) {
+		display.setTextColor(BLACK, WHITE);
+	}
+	if (hours < 10) display.print("0");
+	display.print(hours);
+	display.setTextColor(WHITE);
+	display.print(":");
+	
+	if (invertedPosition == 1) {
+		display.setTextColor(BLACK, WHITE);
+	}
+	if (minutes < 10) display.print("0");
+	display.print(minutes);
+	display.setTextColor(WHITE);
+	display.print(":");
+
+	if (invertedPosition == 2) {
+		display.setTextColor(BLACK, WHITE);
+	}
+	if (seconds < 10) display.print("0");
+	display.print(seconds);
+	display.setTextColor(WHITE);
+	display.display();	
+}
+
 
 #endif

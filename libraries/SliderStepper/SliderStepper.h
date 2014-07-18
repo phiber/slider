@@ -25,6 +25,17 @@ const float DIRECTION_TOWARDS_SWITCH_1 = 1;
 int speedSensorValue = 0;
 float _direction = DIRECTION_TOWARDS_SWITCH_2;
 
+int timedHours = 0;
+int timedMinutes = 0;
+int timedSeconds = 0;
+
+int timedLaps = 1;
+
+long numberOfSteps = 0;
+
+String getDirectionStr() {
+	return (_direction == DIRECTION_TOWARDS_SWITCH_2) ? "<-" : "->";
+}
 
 int readSpeedSensorValue() {
 	int speed = analogRead(SPEED_SENSOR_PIN);
@@ -65,9 +76,10 @@ bool endReached() {
 
 
 
-void intializeSlider() {
-	showOnDisplay("Initializing... ", "To switch 2");
-	_direction = DIRECTION_TOWARDS_SWITCH_2;
+void doIntializeSlider(float direction) {
+	_direction = direction;
+	showOnDisplay("Initializing... ", getDirectionStr());
+	
 	stepper.setMaxSpeed(INIT_SPEED); // For faster initialization
 	stepper.setSpeed(INIT_SPEED * _direction);
 	while ( ! endReached()) {
@@ -79,16 +91,139 @@ void intializeSlider() {
 	stepper.setCurrentPosition(0);
 	stepper.setSpeed(0);
 	changeDirection();
-	showOnDisplay("Initializing... ", "To switch 1");
+	showOnDisplay("Initializing... ", getDirectionStr());
 	stepper.setSpeed(INIT_SPEED * _direction);
 	while ( ! endReached()) {
 		if (isCancelButtonPressed()) {
 			return;
 		}
-		stepper.runSpeed();
+		stepper.runSpeed(); 
 	}
+	numberOfSteps = abs(stepper.currentPosition());
 	stepper.setSpeed(0);
 	changeDirection();	
+}
+
+
+void intializeSlider() {
+	doIntializeSlider(DIRECTION_TOWARDS_SWITCH_2);
+}
+
+void enterTimeForTimed() {
+	while (!isOkButtonPressed()) {
+		if  (isDownButtonPressed()) {
+			timedHours--;
+			if (timedHours < 0) {
+				timedHours = 0;
+			} 
+		}
+		if  (isUpButtonPressed()) {
+			timedHours++;
+			if (timedHours > 23) {
+				timedHours = 23;
+			}
+		}
+		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 0);
+	}
+
+	while (!isOkButtonPressed()) {
+		if  (isDownButtonPressed()) {
+			timedMinutes--;
+			if (timedMinutes < 0) {
+				timedMinutes = 0;
+			} 
+		}
+		if  (isUpButtonPressed()) {
+			timedMinutes++;
+			if (timedMinutes > 59) {
+				timedMinutes = 59;
+			}
+		}
+		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 1);
+	}
+
+	while (!isOkButtonPressed()) {
+		if  (isDownButtonPressed()) {
+			timedSeconds--;
+			if (timedSeconds < 0) {
+				timedSeconds = 0;
+			} 
+		}
+		if  (isUpButtonPressed()) {
+			timedSeconds++;
+			if (timedSeconds > 59) {
+				timedSeconds = 59;
+			}
+		}
+		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 2);
+	}
+}
+
+void enterDirectionForTimed() {
+	while (!isOkButtonPressed()) {
+		showOnDisplay("Enter Direction:", getDirectionStr());
+		if  (isUpButtonPressed() || isDownButtonPressed()) { 
+			changeDirection();
+		}
+	}
+}
+
+void enterLapsForTimed() {
+	while (!isOkButtonPressed()) {
+		showIntInput("Enter #Laps:", timedLaps);	
+		if  (isDownButtonPressed()) {
+			timedLaps--;
+			if (timedLaps < 1) {
+				timedLaps = 1;
+			} 
+		}
+		if  (isUpButtonPressed()) {
+			timedLaps++;
+			if (timedLaps > 99) {
+				timedLaps = 99;
+			} 
+		}
+	}
+}
+
+
+
+String getTimedDurationStr() {
+	String h = ((timedHours < 10) ? "0" : "")+String(timedHours);
+	String m = ((timedMinutes < 10) ? "0" : "")+String(timedMinutes);
+	String s = ((timedSeconds < 10) ? "0" : "")+String(timedSeconds);
+	return h+":"+m+":"+s;
+}
+ 
+void runTimedTimelapse() {
+	doIntializeSlider(_direction);
+	while(!isOkButtonPressed()) {
+		showOnDisplay("Timed: ready", getTimedDurationStr()+" "+getDirectionStr()+" "+String(timedLaps));
+		if (isCancelButtonPressed()) return;
+	}
+	long totalRunSeconds = timedHours * 3600 + timedMinutes * 60 + timedSeconds;
+	Serial.print("numberOfSteps: "); Serial.print(numberOfSteps);
+	Serial.print("totalRunSeconds"); Serial.print(totalRunSeconds);
+	Serial.print("Direction: "); Serial.print(getDirection());
+	Serial.print("Laps: "); Serial.print(timedLaps);
+	float speed = numberOfSteps / totalRunSeconds * getDirection() * timedLaps;
+	Serial.print("Speed: "); Serial.print(speed);
+	stepper.setSpeed(speed);
+	int lapsToGo = timedLaps;
+	showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
+	while (! isCancelButtonPressed()) {
+		stepper.runSpeed();
+		if (endReached()) {
+			lapsToGo--;
+			if (lapsToGo == 0) {
+				return;
+			} else {
+				speed = numberOfSteps / totalRunSeconds * changeDirection() * timedLaps;
+				stepper.setSpeed(speed);
+				showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
+			}
+		}
+	}
 }
 
 
