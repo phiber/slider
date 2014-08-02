@@ -32,6 +32,8 @@ int timedSeconds = 0;
 int timedLaps = 1;
 
 long numberOfSteps = 0;
+float percentageDone = 0;
+float displayPercentageDone;
 
 String getDirectionStr() {
 	return (_direction == DIRECTION_TOWARDS_SWITCH_2) ? "<-" : "->";
@@ -194,6 +196,15 @@ String getTimedDurationStr() {
 	String s = ((timedSeconds < 10) ? "0" : "")+String(timedSeconds);
 	return h+":"+m+":"+s;
 }
+
+void updateDisplay(int lapsToGo) {	
+	if (abs(percentageDone - displayPercentageDone) < 5.0) {
+		return;
+	}; 
+	//Serial.print("percentageDone "); Serial.print(percentageDone);
+	displayPercentageDone = percentageDone;
+	showOnDisplay("T: "+getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo), "%: "+String((int)displayPercentageDone));	
+}
  
 void runTimedTimelapse() {
 	doIntializeSlider(_direction);
@@ -211,8 +222,13 @@ void runTimedTimelapse() {
 	stepper.setSpeed(speed);
 	int lapsToGo = timedLaps;
 	showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
+	long totalNumberOfSteps = timedLaps * numberOfSteps;
+
 	while (! isCancelButtonPressed()) {
 		stepper.runSpeed();
+		percentageDone = 100.0 - 100.0 * (float)((getDirection() == -1) ? abs(stepper.currentPosition()) : numberOfSteps - abs(stepper.currentPosition()) + (lapsToGo-1) * numberOfSteps)/(float)totalNumberOfSteps;
+		//percentageDone = 100.0 * (float)((getDirection() == 1) ? abs(stepper.currentPosition()) : numberOfSteps - abs(stepper.currentPosition()) + (timedLaps - lapsToGo) * numberOfSteps) / (float)totalNumberOfSteps;
+		updateDisplay(lapsToGo);
 		if (endReached()) {
 			lapsToGo--;
 			if (lapsToGo == 0) {
