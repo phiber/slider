@@ -54,9 +54,9 @@ MenuItem menu_timed_setup[] = {
   MenuItem::MenuItem("Enter #Laps", 'F', (void*)enterLapsForTimed)
 };
 
-MenuItem menu_setup[] = {
+MenuItem menu_setup[] = {  
   MenuItem::MenuItem("Initialize", 'F',  (void*)intializeSlider)
-};
+}; 
 
 SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 1, NULL);
 SubMenu sub_menu_trigger = SubMenu::SubMenu(menu_trigger, 0, 1, &sub_menu_main);
@@ -109,22 +109,22 @@ void showMenu() {
   showOnDisplay(menu.currentMenuItem()->name);
 
   if (isUpButtonPressed()) {
-    debugStr("up();");
+    //debugStr("up();");
     menu.up(); 
   }
 
   if (isDownButtonPressed()) {
-    debugStr("down();");
+    //debugStr("down();");
     menu.down(); 
   }
 
   if (isOkButtonPressed()) {
-    debugStr("select();");
+    //debugStr("select();");
     menu.select();
   }
 
   if (isCancelButtonPressed()) {
-    debugStr("back();");
+    //debugStr("back();");
     menu.back();
 
   } 
@@ -134,7 +134,7 @@ void showMenu() {
 
 void loop()
 {  
-
+  //Serial.println(downButtonTime());
   showMenu();
   
 }

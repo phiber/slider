@@ -111,52 +111,70 @@ void intializeSlider() {
 	doIntializeSlider(DIRECTION_TOWARDS_SWITCH_2);
 }
 
+int calculateIncrement(int time) {
+	if (time < 10) {
+		return 0;
+	} else 
+	if (time < 1000) {
+		return 1;
+	} 
+	return map(time, 1000, 10000, 2, 10);
+}
+
 void enterTimeForTimed() {
+
 	while (!isOkButtonPressed()) {
-		if  (isDownButtonPressed()) {
-			timedHours--;
-			if (timedHours < 0) {
-				timedHours = 0;
-			} 
-		}
-		if  (isUpButtonPressed()) {
-			timedHours++;
-			if (timedHours > 23) {
-				timedHours = 23;
-			}
-		}
+		int increment;
+		long downTime = downButtonTime();
+		increment =  calculateIncrement(downTime);
+		timedHours=timedHours-increment;
+		if (timedHours < 0) {
+			timedHours = 99;
+		} 
+					
+		long upTime = upButtonTime();
+		increment =  calculateIncrement(upTime);
+		timedHours=timedHours+increment;
+		if (timedHours >= 100) {
+			timedHours = 0;
+		} 
+		delay(50);
 		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 0);
 	}
 
 	while (!isOkButtonPressed()) {
-		if  (isDownButtonPressed()) {
-			timedMinutes--;
-			if (timedMinutes < 0) {
-				timedMinutes = 0;
-			} 
-		}
-		if  (isUpButtonPressed()) {
-			timedMinutes++;
-			if (timedMinutes > 59) {
-				timedMinutes = 59;
-			}
-		}
+		long downTime = downButtonTime();
+		int increment;
+		increment =  calculateIncrement(downTime);
+		timedMinutes=timedMinutes-increment;
+		if (timedMinutes < 0) {
+			timedMinutes = 59;
+		} 
+					long upTime = upButtonTime();
+		increment =  calculateIncrement(upTime);
+		timedMinutes=timedMinutes+increment;
+		if (timedMinutes >= 60) {
+			timedMinutes = 0;
+		} 
+		delay(50);
 		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 1);
 	}
 
 	while (!isOkButtonPressed()) {
-		if  (isDownButtonPressed()) {
-			timedSeconds--;
-			if (timedSeconds < 0) {
-				timedSeconds = 0;
-			} 
-		}
-		if  (isUpButtonPressed()) {
-			timedSeconds++;
-			if (timedSeconds > 59) {
-				timedSeconds = 59;
-			}
-		}
+		long downTime = downButtonTime();
+		int increment;
+		increment =  calculateIncrement(downTime);
+		timedSeconds=timedSeconds-increment;
+		if (timedSeconds < 0) {
+			timedSeconds = 59;
+		} 
+					long upTime = upButtonTime();
+		increment =  calculateIncrement(upTime);
+		timedSeconds=timedSeconds+increment;
+		if (timedSeconds >= 60) {
+			timedSeconds = 0;
+		} 
+		delay(50);
 		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 2);
 	}
 }
@@ -164,7 +182,7 @@ void enterTimeForTimed() {
 void enterDirectionForTimed() {
 	while (!isOkButtonPressed()) {
 		showOnDisplay("Enter Direction:", getDirectionStr());
-		if  (isUpButtonPressed() || isDownButtonPressed()) { 
+		if  (upButtonTime() > 0 || downButtonTime() > 0) { 
 			changeDirection();
 		}
 	}
@@ -173,6 +191,22 @@ void enterDirectionForTimed() {
 void enterLapsForTimed() {
 	while (!isOkButtonPressed()) {
 		showIntInput("Enter #Laps:", timedLaps);	
+		long downTime = downButtonTime();
+		int increment;
+		increment =  calculateIncrement(downTime);
+		timedSeconds=timedSeconds-increment;
+		if (timedSeconds < 0) {
+			timedSeconds = 59;
+		} 
+			
+		long upTime = upButtonTime();
+		increment =  calculateIncrement(upTime);
+		timedSeconds=timedSeconds+increment;
+		if (timedSeconds >= 60) {
+			timedSeconds = 0;
+		} 
+	
+
 		if  (isDownButtonPressed()) {
 			timedLaps--;
 			if (timedLaps < 1) {
@@ -185,6 +219,7 @@ void enterLapsForTimed() {
 				timedLaps = 99;
 			} 
 		}
+		delay(50);
 	}
 }
 
