@@ -51,6 +51,7 @@ MenuItem menu_timed[] = {
 MenuItem menu_timed_setup[] = {
   MenuItem::MenuItem("Enter Time", 'F',  (void*)enterTimeForTimed),
   MenuItem::MenuItem("Enter Direction", 'F',  (void*)enterDirectionForTimed),
+  MenuItem::MenuItem("Enter #Frames", 'F', (void*)enterFramesForTimed),
   MenuItem::MenuItem("Enter #Laps", 'F', (void*)enterLapsForTimed)
 };
 
@@ -102,6 +103,10 @@ void setup()
 
 
   //stepper.setSpeed(speedSensorValue);
+
+  pinMode(FOCUS_PIN, OUTPUT);
+  pinMode(TRIGGER_PIN, OUTPUT);
+  
 }
 
 
@@ -109,22 +114,18 @@ void showMenu() {
   showOnDisplay(menu.currentMenuItem()->name);
 
   if (isUpButtonPressed()) {
-    //debugStr("up();");
     menu.up(); 
   }
 
   if (isDownButtonPressed()) {
-    //debugStr("down();");
     menu.down(); 
   }
 
   if (isOkButtonPressed()) {
-    //debugStr("select();");
     menu.select();
   }
 
   if (isCancelButtonPressed()) {
-    //debugStr("back();");
     menu.back();
 
   } 
@@ -134,7 +135,5 @@ void showMenu() {
 
 void loop()
 {  
-  //Serial.println(downButtonTime());
-  showMenu();
-  
+  showMenu();  
 }
