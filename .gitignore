@@ -4,3 +4,19 @@
 *.sublime-project
 
 *.sublime-workspace
+
+SOS/SOS.ino
+
+SliderControl/slider-menu.txt
+
+libraries/Morse/Morse.cpp
+
+libraries/Morse/Morse.h
+
+libraries/Morse/examples/SOS/SOS.pde
+
+libraries/Morse/keywords.txt
+
+pirmotion/pirmotion.ino
+
+test/StructPlayground.ino

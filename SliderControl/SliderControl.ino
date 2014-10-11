@@ -2,153 +2,139 @@
 // -*- mode: C++ -*-
 //
 // 
-#define OLED_RESET 12  //Pin # the OLED module's RST pin is connected to.
+
 
 #include <AccelStepper.h>
 
 #include <Wire.h>
 
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 #include "debug.h"
+#include <Menu.h>
+#include <SliderStepper.h>
+#include <Display.h>
+#include <ControlButtons.h>
+
+#ifndef Adafruit_GFX_h
+#include <Adafruit_GFX.h>
+#endif
+
+//#ifndef Adafruit_SSD1306_h
+//#include <Adafruit_SSD1306.h>
+//#endif
+
+
+void some_function_main() {
+  Serial.println("Main: Some Function called!");
+}
+
+void some_function_trigger() {
+
+  Serial.println("Trigger: Some Function called!");
+}
+
+
+MenuItem menu_main[] = {
+  MenuItem::MenuItem("Trigger", 'M', NULL),
+  MenuItem::MenuItem("Setup", 'M', NULL)
+};
+
+MenuItem menu_trigger[] = {
+  MenuItem::MenuItem("Timed", 'M',  NULL),
+  MenuItem::MenuItem("SubTrigger2", 'F',  (void*)some_function_trigger)
+};
+
+MenuItem menu_timed[] = {
+  MenuItem::MenuItem("Setup", 'M',  NULL),
+  MenuItem::MenuItem("Start", 'F',  (void*)runTimedTimelapse)
+};
+
+MenuItem menu_timed_setup[] = {
+  MenuItem::MenuItem("Enter Time", 'F',  (void*)enterTimeForTimed),
+  MenuItem::MenuItem("Enter Direction", 'F',  (void*)enterDirectionForTimed),
+  MenuItem::MenuItem("Enter #Laps", 'F', (void*)enterLapsForTimed)
+};
+
+MenuItem menu_setup[] = {  
+  MenuItem::MenuItem("Initialize", 'F',  (void*)intializeSlider)
+}; 
+
+SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 1, NULL);
+SubMenu sub_menu_trigger = SubMenu::SubMenu(menu_trigger, 0, 1, &sub_menu_main);
+SubMenu sub_menu_timed = SubMenu::SubMenu(menu_timed, 0, 1, &sub_menu_trigger);
+SubMenu sub_menu_timed_setup = SubMenu::SubMenu(menu_timed_setup, 0, 2, &sub_menu_timed);
+SubMenu sub_menu_setup = SubMenu::SubMenu(menu_setup, 0,0, &sub_menu_main);
 
 
 
-Adafruit_SSD1306 display(OLED_RESET);
-
-//AccelStepper stepper; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-AccelStepper stepper(1,9,8); // 1 = type, 9 = step, 8 = direction
-const int ACCEL_STEPPER_MAX_SPEED = 1024;
-
-const int SPEED_SENSOR_PIN = 0;
-int speedSensorValue = 0;
-
-const int SWITCH_1_PIN = 2;
-const int SWITCH_2_PIN = 7;
-
-const float DIRECTION_TOWARDS_SWITCH_2 = -1;
-const float DIRECTION_TOWARDS_SWITCH_1 = 1;
-float _direction = DIRECTION_TOWARDS_SWITCH_2;
- 
-
+Menu menu  = Menu::Menu(&sub_menu_main);
 
 void setup()
-{  
- 
+{    
+
+
+  menu_main[0].function = &sub_menu_trigger;
+  menu_main[1].function = &sub_menu_setup;
+  menu_trigger[0].function = &sub_menu_timed;
+  menu_timed[0].function = &sub_menu_timed_setup;
+
+
+
   initDebug(1);
 
-  intializeSlider();
+  menu  = Menu::Menu(&sub_menu_main);
+  
+  //intializeSlider();
 
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC);
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
+  display.setTextSize(0.5);
+  display.setTextColor(WHITE); 
   display.setCursor(0,0);
 
-  stepper.setMaxSpeed(ACCEL_STEPPER_MAX_SPEED);
+  //stepper.setMaxSpeed(ACCEL_STEPPER_MAX_SPEED);
 
   //Initialize switch1 as Input
   pinMode(SWITCH_1_PIN, INPUT);
   pinMode(SWITCH_2_PIN, INPUT);
 
-  stepper.setSpeed(speedSensorValue);
+
+  initializeControlButtons();
 
 
+  //stepper.setSpeed(speedSensorValue);
 }
 
-void intializeSlider() {
-  int speed = ACCEL_STEPPER_MAX_SPEED;
 
-  stepper.setMaxSpeed(speed);
-  debugStr("To End...");
-  changeSpeedTo(speed);
-  while ( ! endReached()) {
-    stepper.runSpeed();
+void showMenu() {
+  showOnDisplay(menu.currentMenuItem()->name);
+
+  if (isUpButtonPressed()) {
+    //debugStr("up();");
+    menu.up(); 
   }
-  debugStr("End reached.");
-  stepper.setCurrentPosition(0);
-  changeSpeedTo(0);
-  changeDirection();
-  changeSpeedTo(speed);
-  
-  debugStr("To Begin..."); 
-  while ( ! endReached()) {
-    stepper.runSpeed();
+
+  if (isDownButtonPressed()) {
+    //debugStr("down();");
+    menu.down(); 
   }
-  debugStr("Begin reached.");
-  changeSpeedTo(0);
-  changeDirection();
-  long pos = stepper.currentPosition();
-  debugStr(String(pos));
-  delay(5000);
-}
 
-
-int readSpeedSensorValue() {
-  int speed = analogRead(SPEED_SENSOR_PIN);
-  return map(speed,0,1023,0,100); // percent will range from -100 to 100.
-}
-
-void showOnDisplay(String text) {
-  display.setCursor(0,0);
-  display.clearDisplay(); 
-  display.println(text);
-  display.display();
-}
-
-void showOnDisplay(String text, int value) {
-  showOnDisplay(text+value+"%");
-}
-
-void changeSpeedTo(int speedPercentage) {
-  if (speedPercentage != speedSensorValue) { 
-    float maximalSpeed = ACCEL_STEPPER_MAX_SPEED;
-    float percentage = (float)speedPercentage / 100;
-    debugFloat("percentage = ", percentage);
-    float newSpeed = maximalSpeed * percentage * _direction; 
-    stepper.setSpeed(newSpeed);
-    showOnDisplay("speed = ", speedPercentage);
-    speedSensorValue = speedPercentage;
+  if (isOkButtonPressed()) {
+    //debugStr("select();");
+    menu.select();
   }
-}
 
-float changeDirection() {
-  _direction = _direction * -1;
-  debugFloat("direction changed:", _direction);
-  return _direction;
-}
+  if (isCancelButtonPressed()) {
+    //debugStr("back();");
+    menu.back();
 
-float getDirection() {
-  return _direction;
+  } 
 }
 
 
-boolean endReached() {
-  int switch1 = digitalRead(SWITCH_1_PIN);
-  int switch2 = digitalRead(SWITCH_2_PIN);
-  return (
-    (getDirection() == DIRECTION_TOWARDS_SWITCH_2 && switch2 == HIGH)
-      ||
-    (getDirection() == DIRECTION_TOWARDS_SWITCH_1 && switch1 == HIGH)
-    );
-}
 
 void loop()
 {  
+  //Serial.println(downButtonTime());
+  showMenu();
   
-  int speed = readSpeedSensorValue();
- 
-  
-  //debug("Switch1 = ", switch1);
-  if (endReached()) {
-      changeSpeedTo(0);
-      speed = speed * changeDirection();
-  } 
- 
-  changeSpeedTo(speed);
-  stepper.runSpeed();
 }
-
-
-
-
