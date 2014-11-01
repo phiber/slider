@@ -37,6 +37,8 @@ int timedSeconds = 0;
 int timedLaps = 1;
 
 int frames = 0;
+long bulbTime = 1000;
+
 
 long numberOfSteps = 0;
 float percentageDone = 0;
@@ -251,6 +253,23 @@ void enterLapsForTimed() {
 	}
 }
 
+void enterBulbForTimed() {
+	while (!isOkButtonPressed()) {
+		showOnDisplay("Enter Bulb Time [ms]:", bulbTime);
+		long downTime = downButtonTime();
+		int increment;
+		increment =  calculateIncrement(downTime);
+		bulbTime = bulbTime - increment;
+		if (bulbTime < 1) {
+			bulbTime = 1;
+		}
+
+		long upTime = upButtonTime();
+		increment =  calculateIncrement(upTime);
+		bulbTime = bulbTime + increment;
+	}
+}
+
 
 
 String getTimedDurationStr() {
@@ -272,12 +291,20 @@ void updateDisplay(int lapsToGo) {
 
  
 void runTimedTimelapse() {
+	long totalRunSeconds = timedHours * 3600 + timedMinutes * 60 + timedSeconds - (bulbTime/1000 * frames);
+	if(totalRunSeconds < 0) {
+		while(!(isOkButtonPressed() || isCancelButtonPressed())) {
+			showOnDisplay("Invalid settings --> t < 0");
+		}
+		return;
+	}
+
 	doIntializeSlider(_direction);
 	while(!isOkButtonPressed()) {
 		showOnDisplay("Timed: ready", getTimedDurationStr()+" "+getDirectionStr()+" "+String(timedLaps));
 		if (isCancelButtonPressed()) return;
 	}
-	long totalRunSeconds = timedHours * 3600 + timedMinutes * 60 + timedSeconds;
+
 	Serial.print("numberOfSteps: "); Serial.print(numberOfSteps);
 	Serial.print("totalRunSeconds"); Serial.print(totalRunSeconds);
 	Serial.print("Direction: "); Serial.print(getDirection());
@@ -291,10 +318,9 @@ void runTimedTimelapse() {
 	long totalNumberOfSteps = timedLaps * numberOfSteps;
 
 
-	long triggerInterval = totalRunSeconds *1000 / frames;
+	long triggerInterval = totalRunSeconds * 1000 / frames;
 	long triggerMillis  = 0;
 	bool triggerPressed = false;
-	long bulbTime = 1000;
 	while (! isCancelButtonPressed()) {
 		stepper.runSpeed();
 
