@@ -10,11 +10,11 @@
 #ifndef Adafruit_GFX_h
 #include <Adafruit_GFX.h>
 #endif
-
+  
 #ifndef Adafruit_SSD1306_h
 #include <Adafruit_SSD1306.h>
+#define Adafruit_SSD1306_h
 #endif
-
 
 
 Adafruit_SSD1306 display(OLED_RESET);
