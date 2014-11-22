@@ -52,6 +52,7 @@ MenuItem menu_timed_setup[] = {
   MenuItem::MenuItem("Enter Time", 'F',  (void*)enterTimeForTimed),
   MenuItem::MenuItem("Enter Direction", 'F',  (void*)enterDirectionForTimed),
   MenuItem::MenuItem("Enter #Frames", 'F', (void*)enterFramesForTimed),
+  MenuItem::MenuItem("Enter Bulb Time", 'F', (void*)enterBulbForTimed),
   MenuItem::MenuItem("Enter #Laps", 'F', (void*)enterLapsForTimed)
 };
 
@@ -62,7 +63,7 @@ MenuItem menu_setup[] = {
 SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 1, NULL);
 SubMenu sub_menu_trigger = SubMenu::SubMenu(menu_trigger, 0, 1, &sub_menu_main);
 SubMenu sub_menu_timed = SubMenu::SubMenu(menu_timed, 0, 1, &sub_menu_trigger);
-SubMenu sub_menu_timed_setup = SubMenu::SubMenu(menu_timed_setup, 0, 2, &sub_menu_timed);
+SubMenu sub_menu_timed_setup = SubMenu::SubMenu(menu_timed_setup, 0, 4, &sub_menu_timed);
 SubMenu sub_menu_setup = SubMenu::SubMenu(menu_setup, 0,0, &sub_menu_main);
 
 
