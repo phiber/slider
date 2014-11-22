@@ -255,7 +255,7 @@ void enterLapsForTimed() {
 
 void enterBulbForTimed() {
 	while (!isOkButtonPressed()) {
-		showOnDisplay("Enter Bulb Time [ms]:", bulbTime);
+		showIntInput("Enter Bulb ms:", bulbTime);
 		long downTime = downButtonTime();
 		int increment;
 		increment =  calculateIncrement(downTime);
@@ -283,7 +283,7 @@ void updateDisplay(int lapsToGo) {
 	if (abs(percentageDone - displayPercentageDone) < 5.0) {
 		return;
 	}; 
-	//Serial.print("percentageDone "); Serial.print(percentageDone);
+	Serial.print("percentageDone "); Serial.print(percentageDone);
 	displayPercentageDone = percentageDone;
 	showOnDisplay("T: "+getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo), "%: "+String((int)displayPercentageDone));	
 }
@@ -317,14 +317,19 @@ void runTimedTimelapse() {
 	showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
 	long totalNumberOfSteps = timedLaps * numberOfSteps;
 
-
+	long positionAtStartOfLap = stepper.currentPosition();
+	long stepsRunInLap = 0;
 	long triggerInterval = totalRunSeconds * 1000 / frames;
 	long triggerMillis  = 0;
 	bool triggerPressed = false;
+	int lapsCompleted = 0;
+	long stepsRun = 0;
 	while (! isCancelButtonPressed()) {
 		stepper.runSpeed();
-
-		percentageDone = 100.0 - 100.0 * (float)((getDirection() == -1) ? abs(stepper.currentPosition()) : numberOfSteps - abs(stepper.currentPosition()) + (lapsToGo-1) * numberOfSteps)/(float)totalNumberOfSteps;
+		stepsRunInLap = abs(positionAtStartOfLap - stepper.currentPosition());
+		lapsCompleted = timedLaps - lapsToGo;
+		stepsRun = ((long)lapsCompleted * numberOfSteps + stepsRunInLap);
+		percentageDone = ((float)stepsRun)/((float)totalNumberOfSteps) * 100.0;
 		float currentSpeed;
 		if (!triggerPressed && ((unsigned long)(millis() - triggerMillis) >= triggerInterval)) {
 			currentSpeed = stepper.speed();
@@ -337,6 +342,12 @@ void runTimedTimelapse() {
 			digitalWrite(TRIGGER_PIN, LOW);
     		triggerMillis = millis();
     		triggerPressed = false;	
+    		updateDisplay(lapsToGo);
+    		Serial.print("lapsCompleted "); Serial.print(lapsCompleted);
+
+    		Serial.print("stepsRunInLap "); Serial.print(stepsRunInLap);
+
+    		Serial.print("percentageDone "); Serial.print(percentageDone);
     		stepper.setSpeed(currentSpeed);
 		}
 		//percentageDone = 100.0 * (float)((getDirection() == 1) ? abs(stepper.currentPosition()) : numberOfSteps - abs(stepper.currentPosition()) + (timedLaps - lapsToGo) * numberOfSteps) / (float)totalNumberOfSteps;
@@ -346,6 +357,7 @@ void runTimedTimelapse() {
 			if (lapsToGo == 0) {
 				break;
 			} else {
+				positionAtStartOfLap = stepper.currentPosition();
 				speed = numberOfSteps / totalRunSeconds * changeDirection() * timedLaps;
 				stepper.setSpeed(speed);
 				showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
