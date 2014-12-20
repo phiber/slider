@@ -24,13 +24,6 @@ void Menu::select() {
 		current_sub_menu = (SubMenu*) selected->function;
 		int index = current_sub_menu->currentIndex;
 		MenuItem *currentMenuItem = &current_sub_menu->menuItems[index];
-		Serial.print("Current Menu: ");
-		Serial.print(currentMenuItem->name);
-		Serial.print("\n");
-		Serial.print("Current Index: ");
-		Serial.print(current_sub_menu->currentIndex);
-		Serial.print("\n");
-
 	} else if (selected->type == 'F'){
 		((void (*)(void)) selected->function)();
 	} else {
@@ -55,8 +48,6 @@ void Menu::back() {
 	if (current_sub_menu->parent_sub_menu != NULL) {
 		current_sub_menu = current_sub_menu->parent_sub_menu;
 		MenuItem *selected = currentMenuItem();
-		Serial.print("Current Menu: ");
-		Serial.print(selected->name);
 	}
 }
 

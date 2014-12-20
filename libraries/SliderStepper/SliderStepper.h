@@ -27,6 +27,9 @@ const int TRIGGER_PIN = 3;
 const float DIRECTION_TOWARDS_SWITCH_2 = -1;
 const float DIRECTION_TOWARDS_SWITCH_1 = 1;
 
+
+const String SPACE = String(" ");
+
 int speedSensorValue = 0;
 float _direction = DIRECTION_TOWARDS_SWITCH_2;
 
@@ -45,7 +48,7 @@ float percentageDone = 0;
 float displayPercentageDone;
 
 String getDirectionStr() {
-	return (_direction == DIRECTION_TOWARDS_SWITCH_2) ? "<-" : "->";
+	return (_direction == DIRECTION_TOWARDS_SWITCH_2) ? F("<-") : F("->");
 }
 
 int readSpeedSensorValue() {
@@ -69,7 +72,7 @@ void changeSpeedTo(int speedPercentage) {
 		float percentage = (float)speedPercentage / 100;
 		float newSpeed = maximalSpeed * percentage * _direction; 
 		stepper.setSpeed(newSpeed);
-		showOnDisplay("speed = ", speedPercentage);
+		showOnDisplay(F("speed = "), speedPercentage);
 		speedSensorValue = speedPercentage;
 	}
 }
@@ -89,7 +92,7 @@ bool endReached() {
 
 void doIntializeSlider(float direction) {
 	_direction = direction;
-	showOnDisplay("Initializing... ", getDirectionStr());
+	showOnDisplay(F("Initializing... "), getDirectionStr());
 	
 	stepper.setMaxSpeed(INIT_SPEED); // For faster initialization
 	stepper.setSpeed(INIT_SPEED * _direction);
@@ -102,7 +105,7 @@ void doIntializeSlider(float direction) {
 	stepper.setCurrentPosition(0);
 	stepper.setSpeed(0);
 	changeDirection();
-	showOnDisplay("Initializing... ", getDirectionStr());
+	showOnDisplay(F("Initializing... "), getDirectionStr());
 	stepper.setSpeed(INIT_SPEED * _direction);
 	while ( ! endReached()) {
 		if (isCancelButtonPressed()) {
@@ -147,7 +150,7 @@ void enterFramesForTimed() {
 			frames = 0;
 		}
 		delay(50);
-		showIntInput("Number of frames: ", frames);
+		showIntInput(F("Number of frames: "), frames);
 	} 
 }
 
@@ -169,7 +172,7 @@ void enterTimeForTimed() {
 			timedHours = 0;
 		} 
 		delay(50);
-		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 0);
+		showTimeInput(F("Enter Time:"), timedHours, timedMinutes, timedSeconds, 0);
 	}
 
 	while (!isOkButtonPressed()) {
@@ -187,7 +190,7 @@ void enterTimeForTimed() {
 			timedMinutes = 0;
 		} 
 		delay(50);
-		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 1);
+		showTimeInput(F("Enter Time:"), timedHours, timedMinutes, timedSeconds, 1);
 	}
 
 	while (!isOkButtonPressed()) {
@@ -205,13 +208,13 @@ void enterTimeForTimed() {
 			timedSeconds = 0;
 		} 
 		delay(50);
-		showTimeInput("Enter Time:", timedHours, timedMinutes, timedSeconds, 2);
+		showTimeInput(F("Enter Time:"), timedHours, timedMinutes, timedSeconds, 2);
 	}
 }
 
 void enterDirectionForTimed() {
 	while (!isOkButtonPressed()) {
-		showOnDisplay("Enter Direction:", getDirectionStr());
+		showOnDisplay(F("Enter Direction:"), getDirectionStr());
 		if  (upButtonTime() > 0 || downButtonTime() > 0) { 
 			changeDirection();
 		}
@@ -220,7 +223,7 @@ void enterDirectionForTimed() {
 
 void enterLapsForTimed() {
 	while (!isOkButtonPressed()) {
-		showIntInput("Enter #Laps:", timedLaps);	
+		showIntInput(F("Enter #Laps:"), timedLaps);	
 		long downTime = downButtonTime();
 		int increment;
 		increment =  calculateIncrement(downTime);
@@ -255,7 +258,7 @@ void enterLapsForTimed() {
 
 void enterBulbForTimed() {
 	while (!isOkButtonPressed()) {
-		showIntInput("Enter Bulb ms:", bulbTime);
+		showIntInput(F("Enter Bulb ms:"), bulbTime);
 		long downTime = downButtonTime();
 		int increment;
 		increment =  calculateIncrement(downTime);
@@ -273,9 +276,11 @@ void enterBulbForTimed() {
 
 
 String getTimedDurationStr() {
-	String h = ((timedHours < 10) ? "0" : "")+String(timedHours);
-	String m = ((timedMinutes < 10) ? "0" : "")+String(timedMinutes);
-	String s = ((timedSeconds < 10) ? "0" : "")+String(timedSeconds);
+	const String zero = String("0");
+	const String empty = String("");
+	String h = ((timedHours < 10) ? zero : empty)+String(timedHours);
+	String m = ((timedMinutes < 10) ? zero : empty)+String(timedMinutes);
+	String s = ((timedSeconds < 10) ? zero : empty)+String(timedSeconds);
 	return h+":"+m+":"+s;
 }
 
@@ -283,9 +288,9 @@ void updateDisplay(int lapsToGo) {
 	if (abs(percentageDone - displayPercentageDone) < 5.0) {
 		return;
 	}; 
-	Serial.print("percentageDone "); Serial.print(percentageDone);
+	Serial.print(F("percentageDone ")); Serial.print(percentageDone);
 	displayPercentageDone = percentageDone;
-	showOnDisplay("T: "+getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo), "%: "+String((int)displayPercentageDone));	
+	showOnDisplay("T: "+getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(lapsToGo), "%: "+String((int)displayPercentageDone));	
 }
 
 
@@ -294,27 +299,21 @@ void runTimedTimelapse() {
 	long totalRunSeconds = timedHours * 3600 + timedMinutes * 60 + timedSeconds - (bulbTime/1000 * frames);
 	if(totalRunSeconds < 0) {
 		while(!(isOkButtonPressed() || isCancelButtonPressed())) {
-			showOnDisplay("Invalid settings --> t < 0");
+			showOnDisplay(F("Invalid settings --> t < 0"));
 		}
 		return;
 	}
 
 	doIntializeSlider(_direction);
 	while(!isOkButtonPressed()) {
-		showOnDisplay("Timed: ready", getTimedDurationStr()+" "+getDirectionStr()+" "+String(timedLaps));
+		showOnDisplay(F("Timed: ready"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(timedLaps));
 		if (isCancelButtonPressed()) return;
 	}
 
-	Serial.print("numberOfSteps: "); Serial.print(numberOfSteps);
-	Serial.print("totalRunSeconds"); Serial.print(totalRunSeconds);
-	Serial.print("Direction: "); Serial.print(getDirection());
-	Serial.print("Laps: "); Serial.print(timedLaps);
-	Serial.print("Frames: "); Serial.print(frames);
 	float speed = numberOfSteps / totalRunSeconds * getDirection() * timedLaps;
-	Serial.print("Speed: "); Serial.print(speed);
 	stepper.setSpeed(speed);
 	int lapsToGo = timedLaps;
-	showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
+	showOnDisplay(F("Timed: running"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(lapsToGo));
 	long totalNumberOfSteps = timedLaps * numberOfSteps;
 
 	long positionAtStartOfLap = stepper.currentPosition();
@@ -343,15 +342,8 @@ void runTimedTimelapse() {
     		triggerMillis = millis();
     		triggerPressed = false;	
     		updateDisplay(lapsToGo);
-    		Serial.print("lapsCompleted "); Serial.print(lapsCompleted);
-
-    		Serial.print("stepsRunInLap "); Serial.print(stepsRunInLap);
-
-    		Serial.print("percentageDone "); Serial.print(percentageDone);
     		stepper.setSpeed(currentSpeed);
 		}
-		//percentageDone = 100.0 * (float)((getDirection() == 1) ? abs(stepper.currentPosition()) : numberOfSteps - abs(stepper.currentPosition()) + (timedLaps - lapsToGo) * numberOfSteps) / (float)totalNumberOfSteps;
-		//updateDisplay(lapsToGo);
 		if (endReached()) {
 			lapsToGo--;
 			if (lapsToGo == 0) {
@@ -360,12 +352,12 @@ void runTimedTimelapse() {
 				positionAtStartOfLap = stepper.currentPosition();
 				speed = numberOfSteps / totalRunSeconds * changeDirection() * timedLaps;
 				stepper.setSpeed(speed);
-				showOnDisplay("Timed: running", getTimedDurationStr()+" "+getDirectionStr()+" "+String(lapsToGo));
+				showOnDisplay(F("Timed: running"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(lapsToGo));
 			}
 		}
 	}
 	while (!(isCancelButtonPressed() || isOkButtonPressed())) {
-		showOnDisplay("Timed: finished", getTimedDurationStr()+" "+getDirectionStr()+" "+String(timedLaps));	
+		showOnDisplay(F("Timed: finished"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(timedLaps));	
 	}
 }
 
