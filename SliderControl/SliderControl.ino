@@ -14,18 +14,31 @@
 #include <Display.h>
 #include <ControlButtons.h>
 
-//#include "Adafruit_LEDBackpack.h"
-
 #include <SPI.h>
 
 #ifndef Adafruit_GFX_h
 #include <Adafruit_GFX.h>
+#define Adafruit_GFX_h
 #endif
 
 #ifndef Adafruit_SSD1306_h
 #include <Adafruit_SSD1306.h>
 #define Adafruit_SSD1306_h
 #endif
+
+#include <avr/pgmspace.h>
+
+#ifndef ProgressBar_h
+#include <ProgressBar.h>
+#define ProgressBar_h
+#endif
+
+#ifndef Adafruit_LEDBackpack_h
+#include <Adafruit_LEDBackpack.h>
+#define Adafruit_LEDBackpack_h
+#endif
+
+
 
 
 void some_function_main() {
@@ -75,7 +88,6 @@ SubMenu sub_menu_setup = SubMenu::SubMenu(menu_setup, 0,0, &sub_menu_main);
 
 Menu menu  = Menu::Menu(&sub_menu_main);
 
-//Adafruit_24bargraph bar = Adafruit_24bargraph();
 
 
 void setup()
@@ -116,9 +128,10 @@ void setup()
   pinMode(FOCUS_PIN, OUTPUT);
   pinMode(TRIGGER_PIN, OUTPUT);
 
-  //bar.begin(0x71);  // pass in the address
 
-  
+  setupProgressBar();
+  clearProgressBar();
+ 
 }
 
 

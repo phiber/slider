@@ -7,7 +7,14 @@
 #include <AccelStepper.h>
 #include <Wire.h>
 #include <Display.h>
+
+#ifndef ProgressBar_h
+#include <ProgressBar.h>
+#define ProgressBar_h
+#endif
+
 #include <ControlButtons.h>
+
 
 //AccelStepper stepper; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
 AccelStepper stepper(1,9,8); // 1 = type, 9 = step, 8 = direction
@@ -342,11 +349,13 @@ void runTimedTimelapse() {
     		triggerMillis = millis();
     		triggerPressed = false;	
     		updateDisplay(lapsToGo);
+    		setProgressBar(percentageDone);
     		stepper.setSpeed(currentSpeed);
 		}
 		if (endReached()) {
 			lapsToGo--;
 			if (lapsToGo == 0) {
+				setProgressBar(100.0);
 				break;
 			} else {
 				positionAtStartOfLap = stepper.currentPosition();

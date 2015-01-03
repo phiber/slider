@@ -11,7 +11,7 @@ uint8_t barGraphColor = LED_GREEN;
 Adafruit_24bargraph bar = Adafruit_24bargraph();
 
 void setup() {  
-  bar.begin(0x71);  // pass in the address
+  bar.begin(0x77);  // pass in the address
 
 }
 
