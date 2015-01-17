@@ -38,27 +38,39 @@
 #define Adafruit_LEDBackpack_h
 #endif
 
+#ifndef EEPROMAnything_h
+#include "EEPROMAnything.h"
+#define EEPROMAnything_h
+#endif
 
+#ifndef EEPROM_h
+#include "EEPROM.h"
+#define EEPROM_h
+#endif
 
-
-void some_function_main() {
-  Serial.println("Main: Some Function called!");
+void loadSettings() {
+  EEPROM_readAnything(0, configuration);
+  while (!isOkButtonPressed()) {
+    showOnDisplay(F("Settings loaded."));
+  }
 }
 
-void some_function_trigger() {
-
-  Serial.println("Trigger: Some Function called!");
+void saveSettings() {
+  EEPROM_writeAnything(0, configuration);
+  while (!isOkButtonPressed()) {
+    showOnDisplay(F("Settings saved."));
+  }
 }
 
 
 MenuItem menu_main[] = {
-  MenuItem::MenuItem("Trigger", 'M', NULL),
-  MenuItem::MenuItem("Setup", 'M', NULL)
+  MenuItem::MenuItem("Mode", 'M', NULL),
+  MenuItem::MenuItem("Load Settings", 'F', (void*)loadSettings),
+  MenuItem::MenuItem("Save Settings", 'F', (void*)saveSettings)
 };
 
-MenuItem menu_trigger[] = {
+MenuItem menu_mode[] = {
   MenuItem::MenuItem("Timed", 'M',  NULL),
-  MenuItem::MenuItem("SubTrigger2", 'F',  (void*)some_function_trigger)
 };
 
 MenuItem menu_timed[] = {
@@ -78,9 +90,9 @@ MenuItem menu_setup[] = {
   MenuItem::MenuItem("Initialize", 'F',  (void*)intializeSlider)
 }; 
 
-SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 1, NULL);
-SubMenu sub_menu_trigger = SubMenu::SubMenu(menu_trigger, 0, 1, &sub_menu_main);
-SubMenu sub_menu_timed = SubMenu::SubMenu(menu_timed, 0, 1, &sub_menu_trigger);
+SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 2, NULL);
+SubMenu sub_menu_mode = SubMenu::SubMenu(menu_mode, 0, 0, &sub_menu_main);
+SubMenu sub_menu_timed = SubMenu::SubMenu(menu_timed, 0, 1, &sub_menu_mode);
 SubMenu sub_menu_timed_setup = SubMenu::SubMenu(menu_timed_setup, 0, 4, &sub_menu_timed);
 SubMenu sub_menu_setup = SubMenu::SubMenu(menu_setup, 0,0, &sub_menu_main);
 
@@ -94,9 +106,9 @@ void setup()
 {    
 
 
-  menu_main[0].function = &sub_menu_trigger;
+  menu_main[0].function = &sub_menu_mode;
   menu_main[1].function = &sub_menu_setup;
-  menu_trigger[0].function = &sub_menu_timed;
+  menu_mode[0].function = &sub_menu_timed;
   menu_timed[0].function = &sub_menu_timed_setup;
 
 
@@ -131,8 +143,9 @@ void setup()
 
   setupProgressBar();
   clearProgressBar();
- 
 }
+
+
 
 
 void showMenu() {
