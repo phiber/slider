@@ -48,6 +48,12 @@
 #define EEPROM_h
 #endif
 
+#ifndef Digital_Light_TSL2561_h
+#include <Digital_Light_TSL2561.h>
+#define Digital_Light_TSL2561_h
+#endif
+
+
 void loadSettings() {
   EEPROM_readAnything(0, configuration);
   while (!isOkButtonPressed()) {
@@ -71,11 +77,26 @@ MenuItem menu_main[] = {
 
 MenuItem menu_mode[] = {
   MenuItem::MenuItem("Timed", 'M',  NULL),
+  MenuItem::MenuItem("Lux timed", 'M', NULL)
 };
 
 MenuItem menu_timed[] = {
   MenuItem::MenuItem("Setup", 'M',  NULL),
   MenuItem::MenuItem("Start", 'F',  (void*)runTimedTimelapse)
+};
+
+MenuItem menu_lux[] = {
+  MenuItem::MenuItem("Setup", 'M',  NULL),
+  MenuItem::MenuItem("Start", 'F',  (void*)runLuxTimedTimelapse)
+};
+
+MenuItem menu_lux_setup[] = {
+  MenuItem::MenuItem("Enter Time", 'F',  (void*)enterTimeForTimed),
+  MenuItem::MenuItem("Enter Direction", 'F',  (void*)enterDirectionForTimed),
+  MenuItem::MenuItem("Enter #Frames", 'F', (void*)enterFramesForTimed),
+  MenuItem::MenuItem("Enter ISO",'F', (void*)enterISOForLux),
+  MenuItem::MenuItem("Enter Aperture",'F', (void*)enterApertureForLux),
+  MenuItem::MenuItem("Enter #Laps", 'F', (void*)enterLapsForTimed)
 };
 
 MenuItem menu_timed_setup[] = {
@@ -91,7 +112,9 @@ MenuItem menu_setup[] = {
 }; 
 
 SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 2, NULL);
-SubMenu sub_menu_mode = SubMenu::SubMenu(menu_mode, 0, 0, &sub_menu_main);
+SubMenu sub_menu_mode = SubMenu::SubMenu(menu_mode, 0, 1, &sub_menu_main);
+SubMenu sub_menu_lux = SubMenu::SubMenu(menu_lux, 0, 1, &sub_menu_mode);
+SubMenu sub_menu_lux_setup = SubMenu::SubMenu(menu_lux_setup, 0, 5, &sub_menu_lux);
 SubMenu sub_menu_timed = SubMenu::SubMenu(menu_timed, 0, 1, &sub_menu_mode);
 SubMenu sub_menu_timed_setup = SubMenu::SubMenu(menu_timed_setup, 0, 4, &sub_menu_timed);
 SubMenu sub_menu_setup = SubMenu::SubMenu(menu_setup, 0,0, &sub_menu_main);
@@ -109,7 +132,9 @@ void setup()
   menu_main[0].function = &sub_menu_mode;
   menu_main[1].function = &sub_menu_setup;
   menu_mode[0].function = &sub_menu_timed;
+  menu_mode[1].function = &sub_menu_lux;
   menu_timed[0].function = &sub_menu_timed_setup;
+  menu_lux[0].function = &sub_menu_lux_setup;
 
 
 
@@ -143,6 +168,9 @@ void setup()
 
   setupProgressBar();
   clearProgressBar();
+
+  TSL2561.init();
+
 }
 
 

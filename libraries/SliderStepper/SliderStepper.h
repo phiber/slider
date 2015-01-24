@@ -13,6 +13,11 @@
 #define ProgressBar_h
 #endif
 
+#ifndef Digital_Light_TSL2561_h
+#include <Digital_Light_TSL2561.h>
+#define Digital_Light_TSL2561_h
+#endif
+
 #include <ControlButtons.h>
 
 
@@ -50,6 +55,8 @@ typedef struct config_t
 	int timedLaps;
 	int frames;
 	long bulbTime;
+	int iso;
+	float aperture;
 	config_t(){
 		_direction = DIRECTION_TOWARDS_SWITCH_2;
 		timedHours = 0;
@@ -58,6 +65,8 @@ typedef struct config_t
 		timedLaps = 0;
 		frames = 0;
 		bulbTime = 0;
+		iso = 100;
+		aperture = 1.0;
 	};
 };
 
@@ -278,6 +287,51 @@ void enterLapsForTimed() {
 	}
 }
 
+void enterISOForLux() {
+	int isoValues[] = {100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000 ,2500, 3200, 4000, 5000, 6400, 8000, 10000, 12800};
+	int i = 0;
+	int maxIndex = sizeof(isoValues)/sizeof(int) - 1;
+	while(!isOkButtonPressed()) {
+		showOnDisplay(F("Enter ISO Value:"), String(isoValues[i]));
+		if (isUpButtonPressed()) {
+			i++;
+			if (i > maxIndex) {
+				i = 0;
+			}
+		}
+		if (isDownButtonPressed()) {
+			i--;
+			if (i < 0) {
+				i = maxIndex;
+			}
+		}
+	}
+	configuration.iso = isoValues[i];
+}
+
+void enterApertureForLux() { 
+	float apertureValues[] = {1.4, 1.8, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0, 22.0, 32.0};
+	int i = 0;
+	int maxIndex = sizeof(apertureValues)/sizeof(float) - 1;
+	while(!isOkButtonPressed()) {
+		showOnDisplay(F("Enter Aperture:"), String(apertureValues[i]));
+		if (isUpButtonPressed()) {
+			i++;
+			if (i > maxIndex) {
+				i = 0;
+			}
+		}
+		if (isDownButtonPressed()) {
+			i--;
+			if (i < 0) {
+				i = maxIndex;
+			}
+		}
+	}
+	configuration.aperture = apertureValues[i];
+
+}
+
 void enterBulbForTimed() {
 	while (!isOkButtonPressed()) {
 		showIntInput(F("Enter Bulb ms:"), configuration.bulbTime);
@@ -316,13 +370,113 @@ void updateDisplay(int lapsToGo) {
 }
 
 
+void showInvalidSettings() {
+	while(!(isOkButtonPressed() || isCancelButtonPressed())) {
+		showOnDisplay(F("Invalid settings --> t < 0"));
+	}
+}
+
+
+int readLuxValue() {
+	int lux = TSL2561.readVisibleLux();
+	return lux == 0 ? 1 : lux;
+}
+
+long luxBulbTime() {
+	float timeInSeconds = 250.0/configuration.iso * configuration.aperture * configuration.aperture / readLuxValue();
+
+	long result = (long)(timeInSeconds * 1000);
+	Serial.print("luxTime\n");Serial.print(result);
+	return result;
+}
+
+
+
+
+
+void runLuxTimedTimelapse() {
+
+	long totalRunSeconds = configuration.timedHours * 3600 + configuration.timedMinutes * 60 + configuration.timedSeconds;
+	if(totalRunSeconds < 0) {
+		showInvalidSettings();	
+		return;
+	}
+	doIntializeSlider(configuration._direction);
+	while(!isOkButtonPressed()) {
+		showOnDisplay(F("Lux Timed: ready"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(configuration.timedLaps));
+		if (isCancelButtonPressed()) return;
+	}	
+
+
+
+
+
+	float speed = numberOfSteps / totalRunSeconds * getDirection() * configuration.timedLaps;
+	stepper.setSpeed(speed);
+	int lapsToGo = configuration.timedLaps;
+	showOnDisplay(F("Timed: running"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(lapsToGo));
+	long totalNumberOfSteps = configuration.timedLaps * numberOfSteps;
+
+	long positionAtStartOfLap = stepper.currentPosition();
+	long stepsRunInLap = 0;
+	long triggerInterval = totalRunSeconds * 1000 / configuration.frames;
+	long triggerMillis  = 0;
+	bool triggerPressed = false;
+	int lapsCompleted = 0;
+	long stepsRun = 0;
+	while (! isCancelButtonPressed()) {
+		stepper.runSpeed();
+		stepsRunInLap = abs(positionAtStartOfLap - stepper.currentPosition());
+		lapsCompleted = configuration.timedLaps - lapsToGo;
+		stepsRun = ((long)lapsCompleted * numberOfSteps + stepsRunInLap);
+		percentageDone = ((float)stepsRun)/((float)totalNumberOfSteps) * 100.0;
+		float currentSpeed;
+		if (!triggerPressed && ((unsigned long)(millis() - triggerMillis) >= triggerInterval)) {
+			currentSpeed = stepper.speed();
+			stepper.setSpeed(0);
+			digitalWrite(TRIGGER_PIN, HIGH);
+    		triggerMillis = millis();
+    		triggerPressed = true;
+		}
+		if(triggerPressed && ((unsigned long)(millis() - triggerMillis) >= luxBulbTime())) {
+			digitalWrite(TRIGGER_PIN, LOW);
+    		triggerMillis = millis();
+    		triggerPressed = false;	
+    		updateDisplay(lapsToGo);
+    		setProgressBar(percentageDone);
+    		stepper.setSpeed(currentSpeed);
+		}
+		if (endReached()) {
+			lapsToGo--;
+			if (lapsToGo == 0) {
+				setProgressBar(100.0);
+				break;
+			} else {
+				positionAtStartOfLap = stepper.currentPosition();
+				speed = numberOfSteps / totalRunSeconds * changeDirection() * configuration.timedLaps;
+				stepper.setSpeed(speed);
+				showOnDisplay(F("Timed: running"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(lapsToGo));
+			}
+		}
+	}
+	while (!(isCancelButtonPressed() || isOkButtonPressed())) {
+		showOnDisplay(F("Timed: finished"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(configuration.timedLaps));	
+	}
+
+
+
+
+
+
+
+}
+
  
+
 void runTimedTimelapse() {
 	long totalRunSeconds = configuration.timedHours * 3600 + configuration.timedMinutes * 60 + configuration.timedSeconds - (configuration.bulbTime/1000 * configuration.frames);
 	if(totalRunSeconds < 0) {
-		while(!(isOkButtonPressed() || isCancelButtonPressed())) {
-			showOnDisplay(F("Invalid settings --> t < 0"));
-		}
+		showInvalidSettings();	
 		return;
 	}
 
