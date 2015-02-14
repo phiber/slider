@@ -34,7 +34,7 @@ const int SWITCH_1_PIN = 2;
 const int SWITCH_2_PIN = 3;
 
 const int FOCUS_PIN = 10;
-const int TRIGGER_PIN = 3;
+const int TRIGGER_PIN = 11;
 
 const float DIRECTION_TOWARDS_SWITCH_2 = -1;
 const float DIRECTION_TOWARDS_SWITCH_1 = 1;
