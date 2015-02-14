@@ -26,7 +26,7 @@ const int SPEED_SENSOR_PIN = 0;
 
 
 const int SWITCH_1_PIN = 2;
-const int SWITCH_2_PIN = 7;
+const int SWITCH_2_PIN = 3;
 
 const int FOCUS_PIN = 10;
 const int TRIGGER_PIN = 3;
