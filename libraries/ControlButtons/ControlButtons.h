@@ -7,7 +7,7 @@
 
 const int CANCEL_BUTTON_PIN = 4;
 const int OK_BUTTON_PIN = 5;
-const int UP_BUTTON_PIN = 11;
+const int UP_BUTTON_PIN = 7;
 const int DOWN_BUTTON_PIN = 6;
 
 
