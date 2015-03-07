@@ -16,12 +16,24 @@ BSD license, check license.txt for more information
 All text above, and the splash screen must be included in any redistribution
 *********************************************************************/
 
+
+
+#ifndef __WIRE__
+  #define __WIRE__
+  #ifdef __AVR__
+   #define WIRE Wire
+  #else
+    #define WIRE Wire1
+  #endif
+#endif
+
+
 #if ARDUINO >= 100
  #include "Arduino.h"
- #define WIRE_WRITE Wire.write
+ #define WIRE_WRITE WIRE.write
 #else
  #include "WProgram.h"
-  #define WIRE_WRITE Wire.send
+  #define WIRE_WRITE WIRE.send
 #endif
 
 #ifdef __SAM3X8E__

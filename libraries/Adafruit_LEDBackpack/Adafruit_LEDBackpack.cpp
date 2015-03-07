@@ -27,6 +27,12 @@
 #include "Adafruit_LEDBackpack.h"
 #include "Adafruit_GFX.h"
 
+#ifdef __AVR__
+#define WIRE Wire
+#else
+#define WIRE Wire1
+#endif
+
 #ifndef _BV
   #define _BV(bit) (1<<(bit))
 #endif
@@ -184,17 +190,17 @@ static const uint16_t alphafonttable[] PROGMEM =  {
 };
 void Adafruit_LEDBackpack::setBrightness(uint8_t b) {
   if (b > 15) b = 15;
-  Wire.beginTransmission(i2c_addr);
-  Wire.write(HT16K33_CMD_BRIGHTNESS | b);
-  Wire.endTransmission();  
+  WIRE.beginTransmission(i2c_addr);
+  WIRE.write(HT16K33_CMD_BRIGHTNESS | b);
+  WIRE.endTransmission();  
 }
 
 void Adafruit_LEDBackpack::blinkRate(uint8_t b) {
-  Wire.beginTransmission(i2c_addr);
+  WIRE.beginTransmission(i2c_addr);
   if (b > 3) b = 0; // turn off if not sure
   
-  Wire.write(HT16K33_BLINK_CMD | HT16K33_BLINK_DISPLAYON | (b << 1)); 
-  Wire.endTransmission();
+  WIRE.write(HT16K33_BLINK_CMD | HT16K33_BLINK_DISPLAYON | (b << 1)); 
+  WIRE.endTransmission();
 }
 
 Adafruit_LEDBackpack::Adafruit_LEDBackpack(void) {
@@ -203,25 +209,25 @@ Adafruit_LEDBackpack::Adafruit_LEDBackpack(void) {
 void Adafruit_LEDBackpack::begin(uint8_t _addr = 0x70) {
   i2c_addr = _addr;
 
-  Wire.begin();
+  WIRE.begin();
 
-  Wire.beginTransmission(i2c_addr);
-  Wire.write(0x21);  // turn on oscillator
-  Wire.endTransmission();
+  WIRE.beginTransmission(i2c_addr);
+  WIRE.write(0x21);  // turn on oscillator
+  WIRE.endTransmission();
   blinkRate(HT16K33_BLINK_OFF);
   
   setBrightness(15); // max brightness
 }
 
 void Adafruit_LEDBackpack::writeDisplay(void) {
-  Wire.beginTransmission(i2c_addr);
-  Wire.write((uint8_t)0x00); // start at address $00
+  WIRE.beginTransmission(i2c_addr);
+  WIRE.write((uint8_t)0x00); // start at address $00
 
   for (uint8_t i=0; i<8; i++) {
-    Wire.write(displaybuffer[i] & 0xFF);    
-    Wire.write(displaybuffer[i] >> 8);    
+    WIRE.write(displaybuffer[i] & 0xFF);    
+    WIRE.write(displaybuffer[i] >> 8);    
   }
-  Wire.endTransmission();  
+  WIRE.endTransmission();  
 }
 
 void Adafruit_LEDBackpack::clear(void) {
@@ -527,13 +533,13 @@ void Adafruit_7segment::drawColon(boolean state) {
 }
 
 void Adafruit_7segment::writeColon(void) {
-    Wire.beginTransmission(i2c_addr);
-    Wire.write((uint8_t)0x04); // start at address $02
+    WIRE.beginTransmission(i2c_addr);
+    WIRE.write((uint8_t)0x04); // start at address $02
     
-    Wire.write(displaybuffer[2] & 0xFF);
-    Wire.write(displaybuffer[2] >> 8);
+    WIRE.write(displaybuffer[2] & 0xFF);
+    WIRE.write(displaybuffer[2] >> 8);
 
-    Wire.endTransmission();
+    WIRE.endTransmission();
 }
 
 void Adafruit_7segment::writeDigitNum(uint8_t d, uint8_t num, boolean dot) {
