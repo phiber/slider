@@ -32,90 +32,67 @@
 #include <ProgressBar.h>
 #define ProgressBar_h
 #endif
-
+ 
 #ifndef Adafruit_LEDBackpack_h
 #include <Adafruit_LEDBackpack.h>
 #define Adafruit_LEDBackpack_h
 #endif
 
-#ifndef EEPROMAnything_h
-#include "EEPROMAnything.h"
-#define EEPROMAnything_h
-#endif
-
-#ifndef EEPROM_h
-#include "EEPROM.h"
-#define EEPROM_h
-#endif
-
-void loadSettings() {
-  EEPROM_readAnything(0, configuration);
-  while (!isOkButtonPressed()) {
-    showOnDisplay(F("Settings loaded."));
-  }
-}
-
-void saveSettings() {
-  EEPROM_writeAnything(0, configuration);
-  while (!isOkButtonPressed()) {
-    showOnDisplay(F("Settings saved."));
-  }
-}
-
 
 MenuItem menu_main[] = {
-  MenuItem::MenuItem("Mode", 'M', NULL),
-  MenuItem::MenuItem("Load Settings", 'F', (void*)loadSettings),
-  MenuItem::MenuItem("Save Settings", 'F', (void*)saveSettings)
+  MenuItem("Mode", 'M', NULL)
 };
 
 MenuItem menu_mode[] = {
-  MenuItem::MenuItem("Timed", 'M',  NULL),
+  MenuItem("Timed", 'M',  NULL)
 };
 
 MenuItem menu_timed[] = {
-  MenuItem::MenuItem("Setup", 'M',  NULL),
-  MenuItem::MenuItem("Start", 'F',  (void*)runTimedTimelapse)
+  MenuItem("Setup", 'M',  NULL),
+  MenuItem("Start", 'F',  (void*)runTimedTimelapse)
 };
 
 MenuItem menu_timed_setup[] = {
-  MenuItem::MenuItem("Enter Time", 'F',  (void*)enterTimeForTimed),
-  MenuItem::MenuItem("Enter Direction", 'F',  (void*)enterDirectionForTimed),
-  MenuItem::MenuItem("Enter #Frames", 'F', (void*)enterFramesForTimed),
-  MenuItem::MenuItem("Enter Bulb Time", 'F', (void*)enterBulbForTimed),
-  MenuItem::MenuItem("Enter #Laps", 'F', (void*)enterLapsForTimed)
+  MenuItem("Enter Time", 'F',  (void*)enterTimeForTimed),
+  MenuItem("Enter Direction", 'F',  (void*)enterDirectionForTimed),
+  MenuItem("Enter #Frames", 'F', (void*)enterFramesForTimed),
+  MenuItem("Enter Bulb Time", 'F', (void*)enterBulbForTimed),
+  MenuItem("Enter #Laps", 'F', (void*)enterLapsForTimed)
 };
 
 MenuItem menu_setup[] = {  
-  MenuItem::MenuItem("Initialize", 'F',  (void*)intializeSlider)
+  MenuItem("Initialize", 'F',  (void*)intializeSlider)
 }; 
 
-SubMenu sub_menu_main = SubMenu::SubMenu(menu_main, 0, 2, NULL);
-SubMenu sub_menu_mode = SubMenu::SubMenu(menu_mode, 0, 0, &sub_menu_main);
-SubMenu sub_menu_timed = SubMenu::SubMenu(menu_timed, 0, 1, &sub_menu_mode);
-SubMenu sub_menu_timed_setup = SubMenu::SubMenu(menu_timed_setup, 0, 4, &sub_menu_timed);
-SubMenu sub_menu_setup = SubMenu::SubMenu(menu_setup, 0,0, &sub_menu_main);
+SubMenu sub_menu_main = SubMenu(menu_main, 0, 2, NULL);
+SubMenu sub_menu_mode = SubMenu(menu_mode, 0, 0, &sub_menu_main);
+SubMenu sub_menu_timed = SubMenu(menu_timed, 0, 1, &sub_menu_mode);
+SubMenu sub_menu_timed_setup = SubMenu(menu_timed_setup, 0, 4, &sub_menu_timed);
+SubMenu sub_menu_setup = SubMenu(menu_setup, 0,0, &sub_menu_main);
 
 
 
-Menu menu  = Menu::Menu(&sub_menu_main);
+Menu menu  = Menu(&sub_menu_main);
 
 
 
 void setup()
 {    
 
+  
 
   menu_main[0].function = &sub_menu_mode;
   menu_main[1].function = &sub_menu_setup;
   menu_mode[0].function = &sub_menu_timed;
   menu_timed[0].function = &sub_menu_timed_setup;
 
+	
 
 
   initDebug(1);
+  Serial.print(F("Hello ")); 
 
-  menu  = Menu::Menu(&sub_menu_main);
+  menu  = Menu(&sub_menu_main);
   
   //intializeSlider();
 
@@ -173,5 +150,6 @@ void showMenu() {
 
 void loop()
 {  
+  Serial.print("Show menu");
   showMenu();  
 }
