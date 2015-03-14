@@ -19,7 +19,7 @@
 //AccelStepper stepper; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
 AccelStepper stepper(1,9,8); // 1 = type, 9 = step, 8 = direction
 const int ACCEL_STEPPER_MAX_SPEED = 1024;
-const int INIT_SPEED = 6000; // Stepper speed for initialization
+const int INIT_SPEED = 2000; // Stepper speed for initialization
 
 const int SPEED_SENSOR_PIN = 0;
 
