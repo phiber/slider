@@ -13,16 +13,22 @@
 #define ProgressBar_h
 #endif
 
+#ifndef DueFlashStorage_h
+#include <DueFlashStorage.h>
+#define DueFlashStorage_h
+#endif
+
 #include <ControlButtons.h>
 
+const int CONFIG_ADDRESS = 8192;
 
 //AccelStepper stepper; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
 AccelStepper stepper(1,9,8); // 1 = type, 9 = step, 8 = direction
 const int ACCEL_STEPPER_MAX_SPEED = 1024;
-const int INIT_SPEED = 6000; // Stepper speed for initialization
 
 const int SPEED_SENSOR_PIN = 0;
 
+const int TOM = 1042;
 
 
 const int SWITCH_1_PIN = 2;
@@ -37,9 +43,9 @@ const float DIRECTION_TOWARDS_SWITCH_1 = 1;
 
 const String SPACE = String(" ");
 
+DueFlashStorage dueFlashStorage;
+
 int speedSensorValue = 0;
-
-
 
 typedef struct config_t
 {
@@ -50,8 +56,10 @@ typedef struct config_t
 	int timedLaps;
 	int frames;
 	long bulbTime;
+	int initSpeed;
 	config_t(){
 		_direction = DIRECTION_TOWARDS_SWITCH_2;
+		initSpeed = 9999;
 		timedHours = 0;
 		timedMinutes = 0;
 		timedSeconds = 0;
@@ -67,6 +75,49 @@ config_t configuration;
 long numberOfSteps = 0;
 float percentageDone = 0;
 float displayPercentageDone;
+
+
+
+void loadSettings() {
+    
+
+  /* Flash is erased every time new code is uploaded. Write the default configuration to flash if first time */
+  // running for the first time?
+	const uint8_t configExistent = dueFlashStorage.read(CONFIG_ADDRESS);
+  bool alreadySavedConfig = configExistent != 255; 
+  Serial.print("alreadySavedConfig: ");
+  Serial.print(configExistent);
+
+  if (alreadySavedConfig) {
+    /* read configuration struct from flash */
+  	byte* b = dueFlashStorage.readAddress(CONFIG_ADDRESS); // byte array which is read from flash at adress 4
+  	memcpy(&configuration, b, sizeof(config_t)); // copy byte array to temporary struct
+  while (!isOkButtonPressed()) {
+    	showOnDisplay(F("Settings loaded."));
+  	}
+  	return;
+  }
+  while (!isOkButtonPressed()) {
+    	showOnDisplay(F("No settings present."));
+  	}
+	
+}
+
+void saveSettings() {
+
+ // write configuration struct to flash at adress 4
+    byte b2[sizeof(config_t)]; // create byte array to store the struct
+    while (!isOkButtonPressed()) {
+    	showOnDisplay("SizeOf: ");
+ 	}
+    memcpy(b2, &configuration, sizeof(config_t)); // copy the struct to the byte array
+    dueFlashStorage.write(CONFIG_ADDRESS, b2, sizeof(config_t)); // write byte array to flash
+
+  while (!isOkButtonPressed()) {
+    showOnDisplay(F("Settings saved."));
+  }
+}
+
 
 
 String getDirectionStr() {
@@ -116,8 +167,8 @@ void doIntializeSlider(float direction) {
 	configuration._direction = direction;
 	showOnDisplay(F("Initializing... "), getDirectionStr());
 	
-	stepper.setMaxSpeed(INIT_SPEED); // For faster initialization
-	stepper.setSpeed(INIT_SPEED * configuration._direction);
+	stepper.setMaxSpeed(configuration.initSpeed); // For faster initialization
+	stepper.setSpeed(configuration.initSpeed * configuration._direction);
 	while ( ! endReached()) {
 		if (isCancelButtonPressed()) {
 			return;
@@ -128,7 +179,7 @@ void doIntializeSlider(float direction) {
 	stepper.setSpeed(0);
 	changeDirection();
 	showOnDisplay(F("Initializing... "), getDirectionStr());
-	stepper.setSpeed(INIT_SPEED * configuration._direction);
+	stepper.setSpeed(configuration.initSpeed * configuration._direction);
 	while ( ! endReached()) {
 		if (isCancelButtonPressed()) {
 			return;
@@ -153,6 +204,27 @@ int calculateIncrement(int time) {
 		return 1;
 	} 
 	return map(time, 1000, 10000, 2, 50);
+}
+
+void enterInitSpeed() {
+	while (!isOkButtonPressed()) {
+		int increment;
+		long downTime = downButtonTime();
+		increment = calculateIncrement(downTime);
+		configuration.initSpeed = configuration.initSpeed - increment;
+		if (configuration.initSpeed < 1000) {
+			configuration.initSpeed = 10000;
+		}
+
+		long upTime = upButtonTime();
+		increment = calculateIncrement(upTime);
+		configuration.initSpeed = configuration.initSpeed + increment;
+		if (configuration.initSpeed > 10000) {
+			configuration.initSpeed = 1000;
+		}
+		delay(50);
+		showIntInput(F("Init Speed: "), configuration.initSpeed);
+	} 
 }
 
 void enterFramesForTimed() {

@@ -1,7 +1,11 @@
+#include <efc.h>
+#include <flash_efc.h>
+
 // SliderControl.pde
 // -*- mode: C++ -*-
 //
 // 
+
 
 
 #include <AccelStepper.h>
@@ -33,14 +37,18 @@
 #define ProgressBar_h
 #endif
  
-#ifndef Adafruit_LEDBackpack_h
+#ifndef Adafruit_LEDBackpack_h 
 #include <Adafruit_LEDBackpack.h>
 #define Adafruit_LEDBackpack_h
 #endif
 
 
+
 MenuItem menu_main[] = {
-  MenuItem("Mode", 'M', NULL)
+  MenuItem("Mode", 'M', NULL),
+  MenuItem("Global Settings", 'M', NULL),
+  MenuItem("Load Settings", 'F', (void*)loadSettings),
+  MenuItem("Save Settings", 'F', (void*)saveSettings)
 };
 
 MenuItem menu_mode[] = {
@@ -64,8 +72,13 @@ MenuItem menu_setup[] = {
   MenuItem("Initialize", 'F',  (void*)intializeSlider)
 }; 
 
-SubMenu sub_menu_main = SubMenu(menu_main, 0, 2, NULL);
+MenuItem menu_global_settings[] = {
+  MenuItem("Set init speed", 'F', (void*)enterInitSpeed)
+};
+
+SubMenu sub_menu_main = SubMenu(menu_main, 0, 3, NULL);
 SubMenu sub_menu_mode = SubMenu(menu_mode, 0, 0, &sub_menu_main);
+SubMenu sub_menu_global_settings = SubMenu(menu_global_settings, 0, 0, &sub_menu_main);
 SubMenu sub_menu_timed = SubMenu(menu_timed, 0, 1, &sub_menu_mode);
 SubMenu sub_menu_timed_setup = SubMenu(menu_timed_setup, 0, 4, &sub_menu_timed);
 SubMenu sub_menu_setup = SubMenu(menu_setup, 0,0, &sub_menu_main);
@@ -82,7 +95,7 @@ void setup()
   
 
   menu_main[0].function = &sub_menu_mode;
-  menu_main[1].function = &sub_menu_setup;
+  menu_main[1].function = &sub_menu_global_settings;
   menu_mode[0].function = &sub_menu_timed;
   menu_timed[0].function = &sub_menu_timed_setup;
 
@@ -153,3 +166,4 @@ void loop()
   Serial.print("Show menu");
   showMenu();  
 }
+
