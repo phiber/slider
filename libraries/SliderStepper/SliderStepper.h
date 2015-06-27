@@ -13,9 +13,9 @@
 #define ProgressBar_h
 #endif
 
-#ifndef DueFlashStorage_h
-#include <DueFlashStorage.h>
-#define DueFlashStorage_h
+#ifndef Config_h
+#include <Config.h>
+#define Config_h
 #endif
 
 #include <ControlButtons.h>
@@ -37,39 +37,14 @@ const int SWITCH_2_PIN = 3;
 const int FOCUS_PIN = 10;
 const int TRIGGER_PIN = 11;
 
-const float DIRECTION_TOWARDS_SWITCH_2 = -1;
-const float DIRECTION_TOWARDS_SWITCH_1 = 1;
-
 
 const String SPACE = String(" ");
 
-DueFlashStorage dueFlashStorage;
 
 int speedSensorValue = 0;
 
-typedef struct config_t
-{
-	float _direction;
-	int timedHours;
-	int timedMinutes;
-	int timedSeconds;
-	int timedLaps;
-	int frames;
-	long bulbTime;
-	int initSpeed;
-	config_t(){
-		_direction = DIRECTION_TOWARDS_SWITCH_2;
-		initSpeed = 9999;
-		timedHours = 0;
-		timedMinutes = 0;
-		timedSeconds = 0;
-		timedLaps = 0;
-		frames = 0;
-		bulbTime = 0;
-	};
-};
-
 config_t configuration;
+Config config;
 
 
 long numberOfSteps = 0;
@@ -80,42 +55,27 @@ float displayPercentageDone;
 
 void loadSettings() {
     
-
-  /* Flash is erased every time new code is uploaded. Write the default configuration to flash if first time */
-  // running for the first time?
-	const uint8_t configExistent = dueFlashStorage.read(CONFIG_ADDRESS);
-  bool alreadySavedConfig = configExistent != 255; 
-  Serial.print("alreadySavedConfig: ");
-  Serial.print(configExistent);
-
-  if (alreadySavedConfig) {
-    /* read configuration struct from flash */
-  	byte* b = dueFlashStorage.readAddress(CONFIG_ADDRESS); // byte array which is read from flash at adress 4
-  	memcpy(&configuration, b, sizeof(config_t)); // copy byte array to temporary struct
+  int result = config.loadTo(&configuration);
   while (!isOkButtonPressed()) {
-    	showOnDisplay(F("Settings loaded."));
+  		if (result == 0) {
+	    	showOnDisplay(F("Settings loaded."));
+  		} else {
+	    	showOnDisplay(F("Load failed: "), result);
+  		}
   	}
-  	return;
-  }
-  while (!isOkButtonPressed()) {
-    	showOnDisplay(F("No settings present."));
-  	}
-	
 }
+  
 
 void saveSettings() {
 
- // write configuration struct to flash at adress 4
-    byte b2[sizeof(config_t)]; // create byte array to store the struct
-    while (!isOkButtonPressed()) {
-    	showOnDisplay("SizeOf: ");
- 	}
-    memcpy(b2, &configuration, sizeof(config_t)); // copy the struct to the byte array
-    dueFlashStorage.write(CONFIG_ADDRESS, b2, sizeof(config_t)); // write byte array to flash
-
-  while (!isOkButtonPressed()) {
-    showOnDisplay(F("Settings saved."));
-  }
+	int result = config.save(&configuration);
+  	while (!isOkButtonPressed()) {
+		if (result == 0) {
+			showOnDisplay(F("Settings saved."));
+	  	} else {
+			showOnDisplay(F("Save failed: "), result);
+	  	}  
+  	}
 }
 
 

@@ -1,12 +1,7 @@
-#include <efc.h>
-#include <flash_efc.h>
-
 // SliderControl.pde
 // -*- mode: C++ -*-
 //
 // 
-
-
 
 #include <AccelStepper.h>
 
@@ -40,6 +35,23 @@
 #ifndef Adafruit_LEDBackpack_h 
 #include <Adafruit_LEDBackpack.h>
 #define Adafruit_LEDBackpack_h
+#endif
+
+#include <Config.h>
+
+#ifndef SdFat_h
+#include <SdFat.h>
+#define SdFat_h
+#endif
+
+#ifndef Config_h
+#include <Config.h>
+#define Config_h
+#endif
+
+#ifndef ArduinoJson_h
+#include <ArduinoJson.h>
+#define ArduinoJson_h
 #endif
 
 
