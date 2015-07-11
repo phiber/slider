@@ -89,7 +89,7 @@ int Config::save(config_t* configuration) {
 
   SdFile myFile;
  // open the file for write at end like the Native SD library
-  if (!myFile.open("config.json", O_RDWR | O_CREAT)) {
+  if (!myFile.open("config.json", O_WRITE | O_CREAT | O_TRUNC)) {
     sd.errorHalt("opening config.json for write failed");
     return -1;
   }
