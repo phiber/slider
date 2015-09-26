@@ -2,7 +2,7 @@
 #ifndef Display_h
 #define Display_h
 
-#define OLED_RESET 12  //Pin # the OLED module's RST pin is connected to.
+#define OLED_RESET 46  //Pin # the OLED module's RST pin is connected to.
 
 #include "Arduino.h"
 #include <Wire.h>
