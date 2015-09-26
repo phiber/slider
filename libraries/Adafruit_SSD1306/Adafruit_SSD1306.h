@@ -20,11 +20,7 @@ All text above, and the splash screen must be included in any redistribution
 
 #ifndef __WIRE__
   #define __WIRE__
-  #ifdef __AVR__
-   #define WIRE Wire
-  #else
-    #define WIRE Wire1
-  #endif
+  #define WIRE Wire
 #endif
 
 
