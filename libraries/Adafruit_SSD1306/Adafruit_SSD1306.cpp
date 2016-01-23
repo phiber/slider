@@ -26,11 +26,7 @@ All text above, and the splash screen below must be included in any redistributi
 
 #ifndef __WIRE__
   #define __WIRE__
-  #ifdef __AVR__
-   #define WIRE Wire
-  #else
-    #define WIRE Wire1
-  #endif
+  #define WIRE Wire
 #endif
 
 #include "Adafruit_GFX.h"
