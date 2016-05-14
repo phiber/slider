@@ -37,12 +37,12 @@ typedef struct config_t
   long bulbTime;
   int initSpeed;
   config_t(){
-    _direction = DIRECTION_TOWARDS_SWITCH_2;
+    _direction = DIRECTION_TOWARDS_SWITCH_1;
     initSpeed = 9999;
     timedHours = 0;
-    timedMinutes = 0;
+    timedMinutes = 2;
     timedSeconds = 0;
-    timedLaps = 0;
+    timedLaps = 1;
     frames = 0;
     bulbTime = 0;
   };
