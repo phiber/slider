@@ -1,7 +1,7 @@
 // SliderControl.pde
 // -*- mode: C++ -*-
 //
-// 
+//
 
 #include <AccelStepper.h>
 
@@ -175,7 +175,6 @@ void showMenu() {
 
 void loop()
 {  
-  Serial.print("Show menu");
   showMenu();  
 }
 
