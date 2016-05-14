@@ -23,8 +23,8 @@
 #endif
 
 
-const float DIRECTION_TOWARDS_SWITCH_2 = -1;
-const float DIRECTION_TOWARDS_SWITCH_1 = 1;
+const float DIRECTION_TOWARDS_SWITCH_2 = 1;
+const float DIRECTION_TOWARDS_SWITCH_1 = -1;
 
 typedef struct config_t
 {
