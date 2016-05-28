@@ -112,12 +112,10 @@ void changeSpeedTo(int speedPercentage) {
 
 
 bool endReached() {
-	int switch1 = digitalRead(SWITCH_1_PIN);
-	int switch2 = digitalRead(SWITCH_2_PIN);
 	return (
-		(getDirection() == DIRECTION_TOWARDS_SWITCH_2 && switch2 == HIGH)
+		(getDirection() == DIRECTION_TOWARDS_SWITCH_2 && digitalRead(SWITCH_2_PIN) == HIGH)
 		||
-		(getDirection() == DIRECTION_TOWARDS_SWITCH_1 && switch1 == HIGH)
+		(getDirection() == DIRECTION_TOWARDS_SWITCH_1 && digitalRead(SWITCH_1_PIN) == HIGH)
 		);
 }
 
@@ -372,33 +370,45 @@ void runTimedTimelapse() {
 
 	long positionAtStartOfLap = stepper.currentPosition();
 	long stepsRunInLap = 0;
-	long triggerInterval = totalRunSeconds * 1000 / configuration.frames;
-	long triggerMillis  = 0;
+	unsigned long triggerInterval = totalRunSeconds * 1000 / configuration.frames;
+	unsigned long triggerMillis  = 0;
 	bool triggerPressed = false;
 	int lapsCompleted = 0;
 	long stepsRun = 0;
+	int updateDisplayCount = 10;
+	long updateDisplayInterval = totalNumberOfSteps / updateDisplayCount;
+
+	unsigned long currentMillis = 0;
+	float currentSpeed;
+
 	while (! isCancelButtonPressed()) {
 		stepper.runSpeed();
-		stepsRunInLap = abs(positionAtStartOfLap - stepper.currentPosition());
-		lapsCompleted = configuration.timedLaps - lapsToGo;
-		stepsRun = ((long)lapsCompleted * numberOfSteps + stepsRunInLap);
-		percentageDone = ((float)stepsRun)/((float)totalNumberOfSteps) * 100.0;
-		float currentSpeed;
-		if (!triggerPressed && ((unsigned long)(millis() - triggerMillis) >= triggerInterval)) {
-			currentSpeed = stepper.speed();
-			stepper.setSpeed(0);
-			digitalWrite(TRIGGER_PIN, HIGH);
-    		triggerMillis = millis();
-    		triggerPressed = true;
+		if (stepper.currentPosition() > updateDisplayInterval * updateDisplayCount + 1) {
+			stepsRunInLap = abs(positionAtStartOfLap - stepper.currentPosition());
+			lapsCompleted = configuration.timedLaps - lapsToGo;
+			stepsRun = ((long)lapsCompleted * numberOfSteps + stepsRunInLap);
+			percentageDone = ((float)stepsRun)/((float)totalNumberOfSteps) * 100.0;
+			
+			setProgressBar(percentageDone);
 		}
-		if(triggerPressed && ((unsigned long)(millis() - triggerMillis) >= configuration.bulbTime)) {
-			digitalWrite(TRIGGER_PIN, LOW);
-    		triggerMillis = millis();
-    		triggerPressed = false;	
-    		updateDisplay(lapsToGo);
-    		setProgressBar(percentageDone);
-    		stepper.setSpeed(currentSpeed);
-		}
+
+		//currentMillis = millis();
+		// if (!triggerPressed && (currentMillis - triggerMillis) >= triggerInterval) {
+		//  	currentSpeed = stepper.speed();
+		//  	stepper.setSpeed(0);
+		//  	digitalWrite(TRIGGER_PIN, HIGH);
+  //    		triggerMillis = currentMillis;
+  //    		triggerPressed = true;
+		// }
+		// if(triggerPressed && (currentMillis - triggerMillis) >= configuration.bulbTime) {
+		//  	digitalWrite(TRIGGER_PIN, LOW);
+  //    		triggerMillis = currentMillis;
+  //    		triggerPressed = false;	
+  //    		updateDisplay(lapsToGo);
+  //    		setProgressBar(percentageDone);
+  //    		stepper.setSpeed(currentSpeed);
+		// }
+
 		if (endReached()) {
 			lapsToGo--;
 			if (lapsToGo == 0) {
