@@ -43,7 +43,7 @@ typedef struct config_t
     timedMinutes = 2;
     timedSeconds = 0;
     timedLaps = 1;
-    frames = 0;
+    frames = 20;
     bulbTime = 0;
   };
 };

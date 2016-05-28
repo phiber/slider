@@ -345,6 +345,20 @@ void updateDisplay(int lapsToGo) {
 	showOnDisplay("T: "+getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(lapsToGo), "%: "+String((int)displayPercentageDone));	
 }
 
+void shootFrame() {
+	unsigned long startTime = millis();
+	unsigned long endTime = startTime + (unsigned long)configuration.bulbTime;
+	unsigned long currentTime = startTime;
+	digitalWrite(TRIGGER_PIN, HIGH);
+	Serial.print("currentTime="); Serial.print(currentTime);
+	Serial.print("endTime="); Serial.print(endTime);
+	while (currentTime < endTime) {
+		currentTime = millis();
+	}
+	
+	digitalWrite(TRIGGER_PIN, LOW);
+}
+
 
  
 void runTimedTimelapse() {
@@ -370,45 +384,39 @@ void runTimedTimelapse() {
 
 	long positionAtStartOfLap = stepper.currentPosition();
 	long stepsRunInLap = 0;
-	unsigned long triggerInterval = totalRunSeconds * 1000 / configuration.frames;
-	unsigned long triggerMillis  = 0;
 	bool triggerPressed = false;
 	int lapsCompleted = 0;
 	long stepsRun = 0;
 	int updateDisplayCount = 10;
 	long updateDisplayInterval = totalNumberOfSteps / updateDisplayCount;
 
-	unsigned long currentMillis = 0;
 	float currentSpeed;
+
+	long triggerStepInterval = numberOfSteps / (configuration.frames + 1);
+	Serial.print("triggerStepInterval="); Serial.print(triggerStepInterval);
+	long stepperCurrentPosition;
+	int framesShot = 0;
 
 	while (! isCancelButtonPressed()) {
 		stepper.runSpeed();
-		if (stepper.currentPosition() > updateDisplayInterval * updateDisplayCount + 1) {
-			stepsRunInLap = abs(positionAtStartOfLap - stepper.currentPosition());
+		stepperCurrentPosition = stepper.currentPosition();
+		if (stepperCurrentPosition > updateDisplayInterval * updateDisplayCount + 1) {
+			stepsRunInLap = abs(positionAtStartOfLap - stepperCurrentPosition);
 			lapsCompleted = configuration.timedLaps - lapsToGo;
 			stepsRun = ((long)lapsCompleted * numberOfSteps + stepsRunInLap);
 			percentageDone = ((float)stepsRun)/((float)totalNumberOfSteps) * 100.0;
-			
 			setProgressBar(percentageDone);
 		}
 
-		//currentMillis = millis();
-		// if (!triggerPressed && (currentMillis - triggerMillis) >= triggerInterval) {
-		//  	currentSpeed = stepper.speed();
-		//  	stepper.setSpeed(0);
-		//  	digitalWrite(TRIGGER_PIN, HIGH);
-  //    		triggerMillis = currentMillis;
-  //    		triggerPressed = true;
-		// }
-		// if(triggerPressed && (currentMillis - triggerMillis) >= configuration.bulbTime) {
-		//  	digitalWrite(TRIGGER_PIN, LOW);
-  //    		triggerMillis = currentMillis;
-  //    		triggerPressed = false;	
-  //    		updateDisplay(lapsToGo);
-  //    		setProgressBar(percentageDone);
-  //    		stepper.setSpeed(currentSpeed);
-		// }
-
+		if ((abs(positionAtStartOfLap - stepperCurrentPosition))  >= triggerStepInterval * (framesShot + 1)) {
+			Serial.print("stepperCurrentPosition=");Serial.println(stepperCurrentPosition);
+		  	currentSpeed = stepper.speed();
+		  	stepper.setSpeed(0);
+		  	shootFrame();
+		  	framesShot++;
+ 			updateDisplay(lapsToGo);
+      		stepper.setSpeed(currentSpeed);
+	 	}
 		if (endReached()) {
 			lapsToGo--;
 			if (lapsToGo == 0) {
@@ -426,6 +434,10 @@ void runTimedTimelapse() {
 		showOnDisplay(F("Timed: finished"), getTimedDurationStr()+SPACE+getDirectionStr()+SPACE+String(configuration.timedLaps));	
 	}
 }
+
+
+
+
 
 
 #endif
